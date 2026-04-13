@@ -1,0 +1,22 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+
+# Build outputs
+bin/
+obj/
+x64/
+Debug/
+Release/
+
+# Compiled / generated files
+*.exe
+*.pdb
+*.ilk
+*.obj
+*.log
+*.db
+
+# Assets
+Assets/*
