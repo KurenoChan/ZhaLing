@@ -24,6 +24,9 @@ struct ColorList
 	std::vector<Color> colors;
 };
 
+// ===========
+// Camera Modes
+// ===========
 enum CameraMode
 {
 	PERSPECTIVE,
@@ -226,8 +229,6 @@ GLuint seaTexture;
 const int SLICES = 50;
 const int STACKS = 50;
 const int LOOPS = 50;
-
-const float PI = 3.14159265358979f;
 
 // ---------
 const float GLU_ANGLEY_OFFSET = -90.0f;
