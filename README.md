@@ -1,4 +1,4 @@
-﻿# Ne Zha 3D Graphics Application
+﻿# Zha Ling 3D Graphics Application
 
 ## Course Information
 **Tunku Abdul Rahman University of Technology and Management (TARUMT)**  
@@ -50,11 +50,11 @@ The application demonstrates core graphics programming concepts using **C++ and 
 
 ## Project Structure
 ```
-NeZha/
+ZhaLing/
 │
 ├── Main.cpp
-├── NeZha.sln
-├── NeZha.vcxproj
+├── ZhaLing.sln
+├── ZhaLing.vcxproj
 ├── Assets/ ← (NOT included in repo)
 └── README.md
 ```
@@ -70,16 +70,16 @@ https://drive.google.com/drive/folders/1Bq0s4iyMsdx_GKPOkWPj5xPBYJk9tpkS?usp=dri
 ### Setup Instructions:
 1. Download all files from the link above  
 2. Place the `Assets` folder in the **project root directory**  
-   (same level as `NeZha.sln`)
+   (same level as `ZhaLing.sln`)
 
 Correct structure:
 ```
-NeZha/
+ZhaLing/
 ├── Assets/
 │ ├── Environment/
 │ ├── Character/
 │ └── ...
-├── NeZha.sln
+├── ZhaLing.sln
 ```
 
 > If the folder structure is incorrect, textures will fail to load.
@@ -107,7 +107,7 @@ https://drive.google.com/drive/u/5/folders/1uf4sTl_5yqPHZ8PLtyYA64hkF_ly64kR
 ---
 
 ## Build & Run
-1. Open `NeZha.sln` in Visual Studio 2022  
+1. Open `ZhaLing.sln` in Visual Studio 2022  
 2. Ensure `Assets/` folder is correctly placed  
 3. Build and run the project  
 
