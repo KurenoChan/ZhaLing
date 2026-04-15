@@ -19,7 +19,7 @@ The application demonstrates core graphics programming concepts using **C++ and 
 ## Features
 
 ### 1. 3D Character Model
-- Custom-designed Ne Zha character built using OpenGL primitives
+- Custom-designed Zha Ling character built using OpenGL primitives
 - Structured using hierarchical modeling
 
 ### 2. Camera / Viewport
