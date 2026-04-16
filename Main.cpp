@@ -337,10 +337,6 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			PostQuitMessage(0);
 			break;
 
-		case 0x30: // Press 0 - DEBUG
-			//cameraY = -90.0f;
-			break;
-
 		case 0x31: // Press 1 - Interactive Movements
 			ResetCameraPosition();
 			ResetCameraAngle();
@@ -352,6 +348,44 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			currentPart = HEAD;
 
 			break;
+
+		// DEBUG : BACK VIEW
+		//case 0x39:
+		//	ResetCameraPosition();
+		//	ResetCameraAngle();
+		//	ResetLightPosition();
+		//	ResetToggle();
+		//	ResetModel();
+
+		//	currentSceneMode = INTERACT;
+		//	currentPart = HEAD;
+
+		//	cameraZ = -2.0f;
+		//	cameraAngleY = -180.0f;
+		//	lightZ = -3.0f;
+
+		//	break;
+
+
+		// DEBUG : SIDE VIEW
+		//case 0x30:
+		//	ResetCameraPosition();
+		//	ResetCameraAngle();
+		//	ResetLightPosition();
+		//	ResetToggle();
+		//	ResetModel();
+
+		//	currentSceneMode = INTERACT;
+		//	currentPart = HEAD;
+
+		//	cameraX = 1.0f;
+		//	cameraZ = -1.0f;
+		//	cameraAngleY = 90.0f;
+
+		//	lightX = 2.0f;
+		//	lightZ = -1.0f;
+
+		//	break;
 
 
 			// ----------------------
