@@ -3370,11 +3370,6 @@ void DrawLeg(float side, float torsoRadius)
 	glTranslatef(0.0f, -upperLegLength, 0.0f);
 	glScalef(1.0f, 0.5f, 1.0f);
 	DrawSphere(quadric, pantJointRadius, SLICES, STACKS);
-
-	// Gold Plate
-
-	// END Gold Plate
-
 	glPopMatrix();
 	// END Pant Joint
 
@@ -3774,7 +3769,7 @@ void DrawHair(float headBaseRadius)
 // OUTFITS FUNCTIONS
 // ***********************
 
-void DrawRedVest(float torsoRadius, float torsoHeight)
+void DrawVest(float torsoRadius, float torsoHeight)
 {
 	float vestRadius = torsoRadius * 1.2f;
 	float vestHeight = torsoRadius * 1.8f;
@@ -3914,11 +3909,11 @@ void DrawCharacter()
 	glRotatef(upperTorso.angleZ, 0.0f, 0.0f, 1.0f);
 	DrawTorsoPart(torsoRadius, torsoHeight);
 
-	// Red Vest [COSTUME]
+	// Vest [COSTUME]
 	glPushMatrix();
-	DrawRedVest(torsoRadius, torsoHeight);
+	DrawVest(torsoRadius, torsoHeight);
 	glPopMatrix();
-	// END Red Vest [COSTUME]
+	// END Vest [COSTUME]
 
 	// Neck
 	float neckRadius = 0.02f;
@@ -3986,7 +3981,6 @@ void DrawCharacter()
 	// Right Arm
 	glPushMatrix();
 	glTranslatef(torsoArmsOffsetX, 0.0f, 0.0f);
-
 	DrawArm(1.0f);
 	glPopMatrix();
 	// END Right Arm
