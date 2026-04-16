@@ -92,7 +92,7 @@ ZhaLing/
 https://docs.google.com/document/d/1OwU_G4HabOtHyup5A00Ly1GxMyS-LhErPepVSthXlU4/edit?usp=drive_link
 
 ### Character Design (Figma)
-https://www.figma.com/design/Aom032BJPb2yL71bMHnOt6/Ne-Zha-Design?node-id=0-1&p=f&t=CLHgOhgAz4wobYtR-0
+https://www.figma.com/design/Aom032BJPb2yL71bMHnOt6/Zha-Ling-Design?node-id=0-1&p=f&t=vXk45O9gUEIt4tOV-0
 
 ### Other Resources
 https://drive.google.com/drive/u/5/folders/1uf4sTl_5yqPHZ8PLtyYA64hkF_ly64kR
