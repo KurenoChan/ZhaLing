@@ -79,6 +79,9 @@ bool isLightMode = false;
 bool isLightOn = true;
 
 
+float scarfTime = 0.0f;
+float scarfSpeed = 0.2f;
+
 // ========================
 // MODEL CONTROL
 // ========================
@@ -324,6 +327,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		break;
 
 	case WM_TIMER:
+		scarfTime += scarfSpeed;
 		InvalidateRect(hWnd, NULL, FALSE); // redraw
 		break;
 
@@ -2410,20 +2414,33 @@ void DrawSideScarf(
 		float t = (float)i / segments;
 		float x = t * length;
 
-		float y = yOffset + amplitude * sinf(frequency * x + phase);
-		float z = amplitude * 0.5f * cosf(frequency * x + phase * 0.7f);
+		// Time-based waves (Disturbed / turbulent motion)
+		float wave1 = frequency * x + phase + scarfTime;
+		float wave2 = (frequency * 0.5f) * x + phase * 1.3f + scarfTime * 1.7f;
+
+		// Falloff (root stiff, tip loose)
+		float falloff = t;
+
+		// Final position
+		float y = yOffset + amplitude * falloff * (sinf(wave1) + 0.3f * sinf(wave2));
+		float z = amplitude * 0.5f * falloff * (cosf(wave1 * 0.7f) + 0.3f * cosf(wave2));
 
 		// derivative approximation (tangent)
 		float dx = 0.01f;
 
-		float y2 = yOffset + amplitude * sinf(frequency * (x + dx) + phase);
-		float z2 = amplitude * 0.5f * cosf(frequency * (x + dx) + phase * 0.7f);
+		float wave1_2 = frequency * (x + dx) + phase + scarfTime;
+		float wave2_2 = (frequency * 0.5f) * (x + dx) + phase * 1.3f + scarfTime * 1.7f;
 
+		float y2 = yOffset + amplitude * (t + dx / length) * (sinf(wave1_2) + 0.3f * sinf(wave2_2));
+
+		float z2 = amplitude * 0.5f * (t + dx / length) * (cosf(wave1_2 * 0.7f) + 0.3f * cosf(wave2_2));
+
+		// Tangent
 		float tx = dx;
 		float ty = y2 - y;
 		float tz = z2 - z;
 
-		// normal-ish perpendicular vector in 3D (simple cross trick)
+		// Normal
 		float nx = -ty;
 		float ny = tx;
 		float nz = 0.0f;
