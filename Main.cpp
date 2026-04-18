@@ -104,7 +104,6 @@ bool isLightMode = false;
 
 bool isLightOn = true;
 
-
 float scarfTime = 0.0f;
 float scarfSpeed = 0.2f;
 
@@ -113,8 +112,8 @@ float scarfSpeed = 0.2f;
 // ========================
 // NeZha Character Model
 float characterX = 0.0f;
-float characterY = 0.0f;
-float characterZ = 0.0f;
+float characterY = -0.13f;
+float characterZ = -1.0f;
 
 // Character Parts
 struct PartRotation
@@ -130,8 +129,8 @@ struct PartRotation
 // ===========
 // Weapon States
 // ===========
-int currentWeapon = 0; // 0 = None, 1 = Spear, 2 = Sword (Add more later)
-const int TOTAL_WEAPONS = 4; // Update this number as you add more weapons
+int currentWeapon = 0;			 // 0 = None, 1 = Spear, 2 = Sword (Add more later)
+const int TOTAL_WEAPONS = 4;	 // Update this number as you add more weapons
 float wheelRotationAngle = 0.0f; // Tracks the current spin position
 float wheelRotationSpeed = 0.0f; // Tracks how fast it is spinning
 int currentBladeIndex = 0;
@@ -141,11 +140,11 @@ const int TOTAL_BLADE_TEXTURES = 2; // 0 = Normal Blade, 1 = Red Blade
 // Weapon ANIMATION VARIABLES
 // =========================
 int currentWeaponAnim = 0;
-const int TOTAL_Weapon_ANIMS = 1; // We will just have 1 (Spear Thrust) for now
-bool isPlaying = false;    // Tracks if the animation is playing or paused
-float animFrame = 0.0f;    // Tracks the current frame of the animation
-bool isLooping = true;     // Tracks if the animation should loop
-float animSpeed = 1.0f;    // 1.0 = normal, 0.5 = slow, 2.0 = fast
+const int TOTAL_Weapon_ANIMS = 2; // 0 = Spear Thrust, 1 = Back Flip
+bool isPlaying = false;			  // Tracks if the animation is playing or paused
+float animFrame = 0.0f;			  // Tracks the current frame of the animation
+bool isLooping = true;			  // Tracks if the animation should loop
+float animSpeed = 1.0f;			  // 1.0 = normal, 0.5 = slow, 2.0 = fast
 // ===========
 // Grip State
 // ===========
@@ -267,6 +266,8 @@ GLuint grassTexture;
 GLuint redBlackFlameTexture;
 GLuint redClothTexture;
 GLuint brownClothTexture;
+GLuint chainTexture;
+GLuint dirtTexture;
 
 // PROPS TEXTURES
 GLuint beltTexture;
@@ -274,7 +275,6 @@ GLuint beltTexture;
 // Environment Textures
 GLuint skyTexture;
 GLuint seaTexture;
-
 
 // Weapon Textures
 GLuint goldenTexture;
@@ -351,6 +351,10 @@ void ResetModel()
 		parts[i].angleY = parts[i].defaultY;
 		parts[i].angleZ = parts[i].defaultZ;
 	}
+
+	characterX = 0.0f;
+	characterY = -0.13f;
+	characterZ = -1.0f;
 }
 
 void SetTexture(GLuint tex)
@@ -433,13 +437,36 @@ Color GetElementHairTint()
 	switch (currentCharacterTexturePresetIndex)
 	{
 	case WATER_ELEMENT:
-		return { 0.20f, 0.42f, 0.60f };
+		return {0.20f, 0.42f, 0.60f};
+	case WOOD_ELEMENT:
+		return {0.42f, 0.74f, 0.34f};
+	case METAL_ELEMENT:
+		return {0.86f, 0.86f, 0.90f};
+	case EARTH_ELEMENT:
+		return {0.58f, 0.42f, 0.24f};
 	default:
 		return { 1.0f, 1.0f, 1.0f };
 	}
 }
 
-void ApplyTint(const Color& color)
+Color GetElementScarfTint()
+{
+	switch (currentCharacterTexturePresetIndex)
+	{
+	case WATER_ELEMENT:
+		return {0.28f, 0.52f, 0.72f};
+	case WOOD_ELEMENT:
+		return {0.36f, 0.68f, 0.30f};
+	case METAL_ELEMENT:
+		return {0.82f, 0.78f, 0.42f};
+	case EARTH_ELEMENT:
+		return {0.60f, 0.40f, 0.22f};
+	default:
+		return {0.45f, 0.45f, 0.45f};
+	}
+}
+
+void ApplyTint(const Color &color)
 {
 	glColor3f(color.r, color.g, color.b);
 }
@@ -455,42 +482,49 @@ float Clamp(float v, float minV, float maxV)
 }
 // -------------------------------------------------------
 //---------
-//Animation
+// Animation
 //---------
-void UpdateAnimation() {
+void UpdateAnimation()
+{
 	// Only run this if we are in Animation Mode and it is playing
-	if (!isPlaying || currentSceneMode != ANIMATION) return;
+	if (!isPlaying || currentSceneMode != ANIMATION)
+		return;
 
+	float maxFrames = (currentWeaponAnim == 1) ? 110.0f : 90.0f;
 	animFrame += (1.0f * animSpeed);
-	float maxFrames = 90.0f;
 
 	// Handle Looping logic
-	if (animFrame > maxFrames) {
-		if (isLooping) {
+	if (animFrame > maxFrames)
+	{
+		if (isLooping)
+		{
 			animFrame = 0.0f; // Restart
 		}
-		else {
+		else
+		{
 			animFrame = maxFrames; // Lock it at the last frame
-			isPlaying = false;     // Auto-pause at the end
+			isPlaying = false;	   // Auto-pause at the end
 		}
 	}
 
 	float t = animFrame / maxFrames;
 
 	// Variables to hold our target angles and positions
-	float torsoY = 0.0f;
+	float torsoX = 0.0f, torsoY = 0.0f, lowerTorsoX = 0.0f, headX = 0.0f;
 	float rArmX = 0.0f, rArmZ = 0.0f, rLowerArmX = 0.0f, rHandX = 0.0f;
 
 	// NEW: Variables for the Left Arm to hold the spear!
-	float lArmX = 0.0f, lArmZ = 0.0f, lLowerArmX = 0.0f;
+	float lArmX = 0.0f, lArmZ = 0.0f, lLowerArmX = 0.0f, lHandX = 0.0f;
 
-	float lLegX = 0.0f, rLegX = 0.0f, lKneeX = 0.0f, rKneeX = 0.0f;
+	float lLegX = 0.0f, rLegX = 0.0f, lKneeX = 0.0f, rKneeX = 0.0f, lFootX = 0.0f, rFootX = 0.0f;
 	float charZ = 0.0f, charY = 0.0f;
 
-	if (currentWeaponAnim == 0) { // Spear Thrust Animation
+	if (currentWeaponAnim == 0)
+	{ // Spear Thrust Animation
 
 		// Phase 1: Wind-up (0% to 40%) - Two-handed pose!
-		if (t <= 0.4f) {
+		if (t <= 0.4f)
+		{
 			float phaseT = t / 0.4f;
 			float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
 
@@ -516,7 +550,8 @@ void UpdateAnimation() {
 			charY = ease * -0.05f;
 		}
 		// Phase 2: The Thrust & Lunge! (40% to 60%) - Explode forward
-		else if (t <= 0.6f) {
+		else if (t <= 0.6f)
+		{
 			float phaseT = (t - 0.4f) / 0.2f;
 			float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
 
@@ -541,8 +576,9 @@ void UpdateAnimation() {
 			charZ = -0.05f + (ease * 0.35f);
 			charY = -0.05f + (ease * -0.05f);
 		}
-		// Phase 3: Hold the pose (60% to 80%) 
-		else if (t <= 0.8f) {
+		// Phase 3: Hold the pose (60% to 80%)
+		else if (t <= 0.8f)
+		{
 			torsoY = 30.0f;
 
 			rArmX = -90.0f;
@@ -563,7 +599,8 @@ void UpdateAnimation() {
 			charY = -0.1f;
 		}
 		// Phase 4: Recovery (80% to 100%) - Step back to center
-		else {
+		else
+		{
 			float phaseT = (t - 0.8f) / 0.2f;
 			float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
 
@@ -586,28 +623,146 @@ void UpdateAnimation() {
 			charZ = 0.30f - (ease * 0.30f);
 			charY = -0.1f - (ease * -0.1f);
 		}
-
-		// Apply the calculated angles to the actual character parts!
-		parts[UPPER_TORSO].angleY = torsoY;
-
-		parts[RIGHT_UPPER_ARM].angleX = rArmX;
-		parts[RIGHT_UPPER_ARM].angleZ = rArmZ;
-		parts[RIGHT_LOWER_ARM].angleX = rLowerArmX;
-		parts[RIGHT_HAND].angleX = rHandX;
-
-		// Apply the new Left Arm angles!
-		parts[LEFT_UPPER_ARM].angleX = lArmX;
-		parts[LEFT_UPPER_ARM].angleZ = lArmZ;
-		parts[LEFT_LOWER_ARM].angleX = lLowerArmX;
-
-		parts[LEFT_UPPER_LEG].angleX = lLegX;
-		parts[LEFT_LOWER_LEG].angleX = lKneeX;
-		parts[RIGHT_UPPER_LEG].angleX = rLegX;
-		parts[RIGHT_LOWER_LEG].angleX = rKneeX;
-
-		characterZ = charZ;
-		characterY = charY;
 	}
+	else if (currentWeaponAnim == 1)
+	{ // Back Flip Animation
+		if (t <= 0.18f)
+		{
+			float phaseT = t / 0.18f;
+			float bodyEase = (1.0f - cosf(phaseT * PI)) * 0.5f;
+
+			torsoX = 22.0f * bodyEase;
+			lowerTorsoX = 14.0f * bodyEase;
+			headX = -8.0f * bodyEase;
+
+			if (phaseT <= 0.45f)
+			{
+				float armT = phaseT / 0.45f;
+				float armEase = (1.0f - cosf(armT * PI)) * 0.5f;
+
+				// Hands swing up first
+				lArmX = 55.0f * armEase;
+				rArmX = 55.0f * armEase;
+				lArmZ = -22.0f * armEase;
+				rArmZ = 22.0f * armEase;
+				lLowerArmX = -18.0f * armEase;
+				rLowerArmX = -18.0f * armEase;
+				lHandX = -4.0f * armEase;
+				rHandX = -4.0f * armEase;
+			}
+			else
+			{
+				float armT = (phaseT - 0.45f) / 0.55f;
+				float armEase = (1.0f - cosf(armT * PI)) * 0.5f;
+
+				// Then swing down/back for the jump
+				lArmX = 55.0f + (-165.0f * armEase);
+				rArmX = 55.0f + (-165.0f * armEase);
+				lArmZ = -22.0f + (10.0f * armEase);
+				rArmZ = 22.0f + (-10.0f * armEase);
+				lLowerArmX = -18.0f + (-36.0f * armEase);
+				rLowerArmX = -18.0f + (-36.0f * armEase);
+				lHandX = -4.0f + (-8.0f * armEase);
+				rHandX = -4.0f + (-8.0f * armEase);
+			}
+
+			lLegX = -22.0f * bodyEase;
+			rLegX = -22.0f * bodyEase;
+			lKneeX = 26.0f * bodyEase;
+			rKneeX = 26.0f * bodyEase;
+			lFootX = -10.0f * bodyEase;
+			rFootX = -10.0f * bodyEase;
+
+			charY = -0.13f - 0.05f * bodyEase;
+			charZ = -1.0f;
+		}
+		else if (t <= 0.82f)
+		{
+			float airT = (t - 0.18f) / 0.64f;
+			float rotation = 360.0f * airT;
+			float tuck = sinf(airT * PI);
+			float swing = sinf(airT * PI * 2.0f);
+			float twist = sinf(airT * PI * 3.0f);
+
+			torsoX = 22.0f + rotation;
+			lowerTorsoX = 14.0f + rotation * 0.90f;
+			headX = -8.0f + rotation * 0.18f - tuck * 12.0f;
+
+			lArmX = -110.0f + tuck * 155.0f + swing * 18.0f;
+			rArmX = -110.0f + tuck * 155.0f - swing * 18.0f;
+			lArmZ = -16.0f + twist * 20.0f + swing * 6.0f;
+			rArmZ = 16.0f - twist * 20.0f - swing * 6.0f;
+			lLowerArmX = -54.0f + tuck * 116.0f - swing * 10.0f;
+			rLowerArmX = -54.0f + tuck * 116.0f + swing * 10.0f;
+			lHandX = -10.0f + tuck * 18.0f + twist * 4.0f;
+			rHandX = -10.0f + tuck * 18.0f - twist * 4.0f;
+
+			lLegX = -22.0f - tuck * 58.0f + swing * 10.0f;
+			rLegX = -22.0f - tuck * 58.0f - swing * 10.0f;
+			lKneeX = 26.0f + tuck * 82.0f + twist * 8.0f;
+			rKneeX = 26.0f + tuck * 82.0f - twist * 8.0f;
+			lFootX = -10.0f + tuck * 24.0f - swing * 8.0f;
+			rFootX = -10.0f + tuck * 24.0f + swing * 8.0f;
+
+			charY = -0.18f + sinf(airT * PI) * 0.55f;
+			charZ = -1.0f + airT * 0.18f;
+		}
+		else
+		{
+			float landT = (t - 0.82f) / 0.18f;
+			float ease = (1.0f - cosf(landT * PI)) * 0.5f;
+			float rebound = sinf(landT * PI);
+
+			torsoX = 382.0f - 22.0f * ease;
+			lowerTorsoX = 338.0f + 22.0f * ease;
+			headX = 6.0f - 6.0f * ease + rebound * 3.0f;
+
+			lArmX = 45.0f - 45.0f * ease - rebound * 10.0f;
+			rArmX = 45.0f - 45.0f * ease - rebound * 10.0f;
+			lArmZ = 18.0f - 18.0f * ease + rebound * 4.0f;
+			rArmZ = -18.0f + 18.0f * ease - rebound * 4.0f;
+			lLowerArmX = 52.0f - 52.0f * ease + rebound * 8.0f;
+			rLowerArmX = 52.0f - 52.0f * ease + rebound * 8.0f;
+			lHandX = 10.0f - 10.0f * ease - rebound * 3.0f;
+			rHandX = 10.0f - 10.0f * ease - rebound * 3.0f;
+
+			lLegX = -80.0f + 80.0f * ease - rebound * 8.0f;
+			rLegX = -80.0f + 80.0f * ease - rebound * 8.0f;
+			lKneeX = 108.0f - 108.0f * ease + rebound * 12.0f;
+			rKneeX = 108.0f - 108.0f * ease + rebound * 12.0f;
+			lFootX = 14.0f - 14.0f * ease + rebound * 4.0f;
+			rFootX = 14.0f - 14.0f * ease + rebound * 4.0f;
+
+			charY = 0.02f - 0.15f * ease - 0.03f * rebound;
+			charZ = -0.82f - 0.18f * ease;
+		}
+	}
+
+	// Apply the calculated angles to the actual character parts
+	parts[HEAD].angleX = headX;
+	parts[UPPER_TORSO].angleX = torsoX;
+	parts[UPPER_TORSO].angleY = torsoY;
+	parts[LOWER_TORSO].angleX = lowerTorsoX;
+
+	parts[RIGHT_UPPER_ARM].angleX = rArmX;
+	parts[RIGHT_UPPER_ARM].angleZ = rArmZ;
+	parts[RIGHT_LOWER_ARM].angleX = rLowerArmX;
+	parts[RIGHT_HAND].angleX = rHandX;
+
+	parts[LEFT_UPPER_ARM].angleX = lArmX;
+	parts[LEFT_UPPER_ARM].angleZ = lArmZ;
+	parts[LEFT_LOWER_ARM].angleX = lLowerArmX;
+	parts[LEFT_HAND].angleX = lHandX;
+
+	parts[LEFT_UPPER_LEG].angleX = lLegX;
+	parts[LEFT_LOWER_LEG].angleX = lKneeX;
+	parts[LEFT_FOOT].angleX = lFootX;
+	parts[RIGHT_UPPER_LEG].angleX = rLegX;
+	parts[RIGHT_LOWER_LEG].angleX = rKneeX;
+	parts[RIGHT_FOOT].angleX = rFootX;
+
+	characterZ = charZ;
+	characterY = charY;
 }
 // UINT = Unsigned integer e.g. Mouse Moved (Like email title)
 // WPARAM, LPARAM = Parameters
@@ -671,6 +826,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			ResetModel();
 
 			currentSceneMode = ANIMATION;
+      currentWeaponAnim = 1; // Back flip
 			isPlaying = false; // Start paused
 			animFrame = 0.0f;  // Reset to the beginning
 			break;
@@ -695,14 +851,16 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			//	ResetToggle();
 			//	ResetModel();
 		case 0x4D: // 'M' Key
-			if (currentSceneMode == WEAPON_CUSTOM) {
+			if (currentSceneMode == WEAPON_CUSTOM)
+			{
 				wheelRotationSpeed -= 0.05f; // Decelerate / spin backward
 			}
 			break;
 		case 'T': // 'T' Key - Degrip
 			currentGrip += 2.0f; // Uncurl the fingers
 			// Stop them from bending backwards
-			if (currentGrip > 70.0f) {
+			if (currentGrip > 70.0f)
+			{
 				currentGrip = 70.0f;
 			}
 			break;
@@ -899,51 +1057,62 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			break;
 
-		case 0x4F:	// [O]
-			if (currentSceneMode == ANIMATION) {
+		case 0x4F: // [O]
+			if (currentSceneMode == ANIMATION)
+			{
 				isPlaying = true; // Play/Continue animation
 			}
-			else if (isCameraMode) {
+			else if (isCameraMode)
+			{
 				currentCameraMode = (CameraMode)((currentCameraMode + CAMERA_COUNT - 1) % CAMERA_COUNT);
 			}
-			else if (isLightMode) {
+			else if (isLightMode)
+			{
 				lightIndex = (lightIndex + NUM_LIGHTS - 1) % NUM_LIGHTS;
 			}
 			break;
-		case 0x50:	// [P]
-			if (currentSceneMode == ANIMATION) {
+		case 0x50: // [P]
+			if (currentSceneMode == ANIMATION)
+			{
 				isPlaying = false; // Pause animation
 			}
-			else if (isCameraMode) {
+			else if (isCameraMode)
+			{
 				currentCameraMode = (CameraMode)((currentCameraMode + 1) % CAMERA_COUNT);
 			}
-			else if (isLightMode) {
+			else if (isLightMode)
+			{
 				lightIndex = (lightIndex + 1) % NUM_LIGHTS;
 			}
 			break;
 
-		case 0x4C:	// [L]
-			if (currentSceneMode == ANIMATION) {
+		case 0x4C: // [L]
+			if (currentSceneMode == ANIMATION)
+			{
 				isLooping = !isLooping; // Toggle looping on/off
 			}
-			else if (isLightMode) {
+			else if (isLightMode)
+			{
 				ToggleLight(); // Normal Light Toggle
 			}
 			break;
 		case 0x55: // [U] - SLOW DOWN
-			if (currentSceneMode == ANIMATION) {
+			if (currentSceneMode == ANIMATION)
+			{
 				animSpeed -= 0.25f;
-				if (animSpeed < 0.25f) animSpeed = 0.25f; // Don't let it go backwards/stop entirely
+				if (animSpeed < 0.25f)
+					animSpeed = 0.25f; // Don't let it go backwards/stop entirely
 			}
 			break;
 
 		case 0x49: // [I] - SPEED UP
-			if (currentSceneMode == ANIMATION) {
+			if (currentSceneMode == ANIMATION)
+			{
 				animSpeed += 0.25f;
 			}
 			break;
 
-		case 0x5A:	// [Z] Key
+		case 0x5A: // [Z] Key
 			switch (currentSceneMode)
 			{
 			case INTERACT:
@@ -969,7 +1138,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			break;
 
-		case 0x58:	// [X] Key
+		case 0x58: // [X] Key
 			switch (currentSceneMode)
 			{
 			case INTERACT:
@@ -995,7 +1164,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			}
 			break;
 
-		case 0x42:	// [B] Key pressed
+		case 0x42: // [B] Key pressed
 			switch (currentSceneMode)
 			{
 			case CHARACTER_CUSTOM:
@@ -1287,6 +1456,8 @@ void LoadOutfitTextures()
 	redBlackFlameTexture = LoadTexture("Assets/Outfits/RedBlackFlame.bmp");
 	redClothTexture = LoadTexture("Assets/Outfits/RedCloth.bmp");
 	brownClothTexture = LoadTexture("Assets/Outfits/BrownCloth.bmp");
+	chainTexture = LoadTexture("Assets/Outfits/Chain.bmp");
+	dirtTexture = LoadTexture("Assets/Outfits/Dirt.bmp");
 }
 
 void LoadPropTextures()
@@ -1301,13 +1472,13 @@ void LoadEnvironmentTextures()
 }
 void LoadWeaponTextures()
 {
-	//Spear Texture
+	// Spear Texture
 	goldenTexture = LoadTexture("Assets/Weapon/gold.bmp");
 	sliverTexture = LoadTexture("Assets/Weapon/sliver.bmp");
 	spearBlade = LoadTexture("Assets/Weapon/SpearBlade.bmp");
 	spearRedBlade = LoadTexture("Assets/Weapon/goldenRed.bmp");
-	//Fish Texture
-	//Fire Wheel Texture
+	// Fish Texture
+	// Fire Wheel Texture
 }
 
 void InitTextures()
@@ -2705,8 +2876,9 @@ void SetupCamera()
 // Weapon
 // ------------------
 
-void DrawSpear(float scale) {
-	GLUquadricObj* quad = gluNewQuadric();
+void DrawSpear(float scale)
+{
+	GLUquadricObj *quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL); // Ensure quadrics are solid
 
 	// Enable textures for the quadric shapes!
@@ -2738,9 +2910,11 @@ void DrawSpear(float scale) {
 
 	glPushMatrix();
 	glTranslatef(0, 0, -0.55f);
-	for (int side = 0; side < 2; side++) {
+	for (int side = 0; side < 2; side++)
+	{
 		glBegin(GL_QUAD_STRIP);
-		for (int i = 0; i <= segments; i++) {
+		for (int i = 0; i <= segments; i++)
+		{
 			float t = (float)i / segments;
 			float outerR = 0.18f - (t * 0.10f);
 			float zBase = pow(t, 1.8f) * totalHeight;
@@ -2757,7 +2931,8 @@ void DrawSpear(float scale) {
 		glEnd();
 	}
 	glBegin(GL_QUAD_STRIP);
-	for (int i = 0; i <= segments; i++) {
+	for (int i = 0; i <= segments; i++)
+	{
 		float t = (float)i / segments;
 		float outerR = 0.18f - (t * 0.10f);
 		float zBase = pow(t, 1.8f) * totalHeight;
@@ -2783,8 +2958,10 @@ void DrawSpear(float scale) {
 
 	// ===== 3. LEAF DECORATION (GOLD) =====
 	glBindTexture(GL_TEXTURE_2D, goldenTexture);
-	for (int j = 0; j < 2; j++) {
-		for (int i = 0; i < 6; i++) {
+	for (int j = 0; j < 2; j++)
+	{
+		for (int i = 0; i < 6; i++)
+		{
 			glPushMatrix();
 			glTranslatef(0, 0, 2.5f + (j * 0.1f));
 			glRotatef(i * 60 + (j * 30), 0, 0, 1);
@@ -2797,10 +2974,12 @@ void DrawSpear(float scale) {
 
 	// ===== 4. THE BLADE (SPEAR BLADE) =====
 	// Check which texture is currently selected
-	if (currentBladeIndex == 0) {
+	if (currentBladeIndex == 0)
+	{
 		glBindTexture(GL_TEXTURE_2D, spearBlade);
 	}
-	else if (currentBladeIndex == 1) {
+	else if (currentBladeIndex == 1)
+	{
 		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
 	}
 	glPushMatrix();
@@ -2826,8 +3005,9 @@ void DrawSpear(float scale) {
 	gluDeleteQuadric(quad);
 }
 
-void DrawWindFireWheel(float size) {
-	GLUquadricObj* quad = gluNewQuadric();
+void DrawWindFireWheel(float size)
+{
+	GLUquadricObj *quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL); // Always solid
 
 	glPushMatrix();
@@ -2839,8 +3019,10 @@ void DrawWindFireWheel(float size) {
 	wheelRotationAngle += wheelRotationSpeed;
 
 	// Keep the angle within a valid 360-degree range
-	if (wheelRotationAngle >= 360.0f) wheelRotationAngle -= 360.0f;
-	if (wheelRotationAngle <= -360.0f) wheelRotationAngle += 360.0f;
+	if (wheelRotationAngle >= 360.0f)
+		wheelRotationAngle -= 360.0f;
+	if (wheelRotationAngle <= -360.0f)
+		wheelRotationAngle += 360.0f;
 
 	// Spin the wheel around the Z axis
 	glRotatef(wheelRotationAngle, 0.0f, 0.0f, 1.0f);
@@ -2861,7 +3043,8 @@ void DrawWindFireWheel(float size) {
 	float thickness = 0.06f;
 	const int resolution = 30;
 
-	for (int i = 0; i < 6; i++) {
+	for (int i = 0; i < 6; i++)
+	{
 		glPushMatrix();
 		glRotatef(i * 60.0f, 0, 0, 1);
 		glTranslatef(0.78f, 0, 0);
@@ -2869,7 +3052,8 @@ void DrawWindFireWheel(float size) {
 		float outerX[resolution], outerY[resolution];
 		float innerX[resolution], innerY[resolution];
 
-		for (int j = 0; j < resolution; j++) {
+		for (int j = 0; j < resolution; j++)
+		{
 			float t = (float)j / (resolution - 1);
 			outerX[j] = t * 0.8f;
 			outerY[j] = sin(t * 3.14159f) * 0.4f + (t * t * 0.3f);
@@ -2883,7 +3067,8 @@ void DrawWindFireWheel(float size) {
 
 		// Front Face
 		glBegin(GL_QUAD_STRIP);
-		for (int j = 0; j < resolution; j++) {
+		for (int j = 0; j < resolution; j++)
+		{
 			glVertex3f(innerX[j], innerY[j], thickness / 2);
 			glVertex3f(outerX[j], outerY[j], thickness / 2);
 		}
@@ -2891,7 +3076,8 @@ void DrawWindFireWheel(float size) {
 
 		// Back Face
 		glBegin(GL_QUAD_STRIP);
-		for (int j = 0; j < resolution; j++) {
+		for (int j = 0; j < resolution; j++)
+		{
 			glVertex3f(innerX[j], innerY[j], -thickness / 2);
 			glVertex3f(outerX[j], outerY[j], -thickness / 2);
 		}
@@ -2900,14 +3086,16 @@ void DrawWindFireWheel(float size) {
 		// Connecting Edges (The "Thickness")
 		glColor3f(0.7f, 0.5f, 0.1f);
 		glBegin(GL_QUAD_STRIP); // Outer rim
-		for (int j = 0; j < resolution; j++) {
+		for (int j = 0; j < resolution; j++)
+		{
 			glVertex3f(outerX[j], outerY[j], thickness / 2);
 			glVertex3f(outerX[j], outerY[j], -thickness / 2);
 		}
 		glEnd();
 
 		glBegin(GL_QUAD_STRIP); // Inner rim
-		for (int j = 0; j < resolution; j++) {
+		for (int j = 0; j < resolution; j++)
+		{
 			glVertex3f(innerX[j], innerY[j], thickness / 2);
 			glVertex3f(innerX[j], innerY[j], -thickness / 2);
 		}
@@ -2928,8 +3116,9 @@ void DrawWindFireWheel(float size) {
 	gluDeleteQuadric(quad);
 }
 
-void DrawFishSword(float scale) {
-	GLUquadricObj* quad = gluNewQuadric();
+void DrawFishSword(float scale)
+{
+	GLUquadricObj *quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL); // Always solid
 
 	glPushMatrix();
@@ -3342,8 +3531,12 @@ void DrawSideScarf(
 	float yOffset,
 	int segments)
 {
-	glMaterialfv(GL_FRONT, GL_AMBIENT, silk_matAmbient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, silk_matDiffuse);
+	Color scarfTint = GetElementScarfTint();
+	GLfloat scarfAmbient[] = {scarfTint.r * 0.22f, scarfTint.g * 0.22f, scarfTint.b * 0.22f, 1.0f};
+	GLfloat scarfDiffuse[] = {scarfTint.r * 0.95f, scarfTint.g * 0.95f, scarfTint.b * 0.95f, 1.0f};
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, scarfAmbient);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, scarfDiffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, silk_matSpecular);
 	glMaterialf(GL_FRONT, GL_SHININESS, silk_shininess);
 
@@ -3409,8 +3602,12 @@ void DrawTopScarf(
 	float yOffset,
 	int segments)
 {
-	glMaterialfv(GL_FRONT, GL_AMBIENT, silk_matAmbient);
-	glMaterialfv(GL_FRONT, GL_DIFFUSE, silk_matDiffuse);
+	Color scarfTint = GetElementScarfTint();
+	GLfloat scarfAmbient[] = {scarfTint.r * 0.22f, scarfTint.g * 0.22f, scarfTint.b * 0.22f, 1.0f};
+	GLfloat scarfDiffuse[] = {scarfTint.r * 0.95f, scarfTint.g * 0.95f, scarfTint.b * 0.95f, 1.0f};
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, scarfAmbient);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, scarfDiffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, silk_matSpecular);
 	glMaterialf(GL_FRONT, GL_SHININESS, silk_shininess);
 
@@ -3896,7 +4093,8 @@ void DrawLowerArm(float armLength)
 	glDisable(GL_TEXTURE_2D);
 }
 
-void DrawFinger(float length, float bendAngle) {
+void DrawFinger(float length, float bendAngle)
+{
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, skinTexture);
 
@@ -3966,7 +4164,8 @@ void DrawFinger(float length, float bendAngle) {
 	glDisable(GL_TEXTURE_2D);
 }
 
-void DrawHand() {
+void DrawHand()
+{
 	float baseRadius = 0.018f;
 	float palmSize = 0.018f;
 
@@ -4040,7 +4239,8 @@ void DrawHand() {
 	glDisable(GL_TEXTURE_2D);
 }
 
-void DrawArm(float side) {
+void DrawArm(float side)
+{
 	float upperArmLength = 0.06f;
 	float lowerArmLength = 0.08f;
 
@@ -4078,14 +4278,15 @@ void DrawArm(float side) {
 	// ==========================================
 	// WEAPON CYCLING LOGIC (Only on Right Arm)
 	// ==========================================
-	if (side > 0.0f) {
+	if (side > 0.0f)
+	{
 		glPushMatrix();
 
-		switch (currentWeapon) {
+		switch (currentWeapon)
+		{
 		case 1: // --- SPEAR ---
-			// 1. Position: X is slightly negative to align with the palm center, 
+			// 1. Position: X is slightly negative to align with the palm center,
 			// Y is 0.0f to center it, Z pushes it slightly forward into the fingers.
-
 
 			glTranslatef(0.00, -0.05f, -0.18f);
 
@@ -4102,7 +4303,7 @@ void DrawArm(float side) {
 			break;
 
 		case 2: // --- WEAPON 2 (Example) ---
-			// 1. Position: X is slightly negative to align with the palm center, 
+			// 1. Position: X is slightly negative to align with the palm center,
 			// Y is 0.0f to center it, Z pushes it slightly forward into the fingers.
 			glTranslatef(-0.07f, 0.01f, 0.25f);
 			glRotatef(270.0f, 0.0f, 1.0f, 0.0f);
@@ -4364,7 +4565,8 @@ void DrawFoot()
 
 	extern int currentWeapon; // (Optional: depending on where currentWeapon is declared, you might need this)
 
-	if (currentWeapon == 3) {
+	if (currentWeapon == 3)
+	{
 		glDisable(GL_TEXTURE_2D); // Turn off skin texture for the fiery colors
 
 		glPushMatrix();
@@ -4959,13 +5161,13 @@ void DrawWaterElementHeadJewel(float headBaseRadius)
 	ApplyTint({ 0.88f, 0.76f, 0.38f });
 
 	glPushMatrix();
-	glTranslatef(headBaseRadius * 0.28f, headBaseRadius * 0.48f, headBaseRadius * 0.74f);
+	glTranslatef(0.0f, headBaseRadius * 0.86f, headBaseRadius * 1.02f);
 	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	DrawEnclosedCylinderWithThickness(quadric, headBaseRadius * 0.11f, headBaseRadius * 0.11f, headBaseRadius * 0.035f, 0.18f, SLICES, STACKS, LOOPS);
+	DrawEnclosedCylinderWithThickness(quadric, headBaseRadius * 0.12f, headBaseRadius * 0.12f, headBaseRadius * 0.04f, 0.18f, SLICES, STACKS, LOOPS);
 	glPopMatrix();
 
 	glPushMatrix();
-	glTranslatef(headBaseRadius * 0.18f, headBaseRadius * -0.62f, headBaseRadius * 0.72f);
+	glTranslatef(0.0f, headBaseRadius * 0.68f, headBaseRadius * 0.98f);
 	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 	DrawEnclosedCylinderWithThickness(quadric, headBaseRadius * 0.06f, headBaseRadius * 0.06f, headBaseRadius * 0.03f, 0.2f, SLICES, STACKS, LOOPS);
 	glPopMatrix();
@@ -4974,17 +5176,15 @@ void DrawWaterElementHeadJewel(float headBaseRadius)
 	ApplyTint({ 0.42f, 0.78f, 1.0f });
 
 	glPushMatrix();
-	glTranslatef(headBaseRadius * 0.13f, headBaseRadius * -0.62f, headBaseRadius * 0.72f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	glScalef(0.6f, 0.6f, 0.4f);
-	DrawSphere(quadric, headBaseRadius * 0.08f, SLICES, STACKS);
+	glTranslatef(0.0f, headBaseRadius * 0.68f, headBaseRadius * 1.03f);
+	glScalef(0.75f, 0.95f, 0.45f);
+	DrawSphere(quadric, headBaseRadius * 0.10f, SLICES, STACKS);
 	glPopMatrix();
 
 	glPushMatrix();
-	glTranslatef(headBaseRadius * 0.02f, headBaseRadius * -0.62f, headBaseRadius * 0.72f);
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	glScalef(0.18f, 1.0f, 0.18f);
-	DrawCuboidPolygon(headBaseRadius * 0.1f, headBaseRadius * 0.34f, headBaseRadius * 0.1f);
+	glTranslatef(0.0f, headBaseRadius * 0.52f, headBaseRadius * 0.98f);
+	glScalef(0.14f, 0.9f, 0.14f);
+	DrawCuboidPolygon(headBaseRadius * 0.10f, headBaseRadius * 0.26f, headBaseRadius * 0.08f);
 	glPopMatrix();
 
 	ResetTint();
@@ -4998,24 +5198,23 @@ void DrawWaterElementFrontRobe(float torsoRadius, float torsoHeight)
 	ApplyTint({ 0.22f, 0.34f, 0.46f });
 
 	glPushMatrix();
-	glTranslatef(0.0f, -torsoHeight * 0.05f, -torsoRadius * 0.88f);
-	glRotatef(2.0f, 0.0f, 1.0f, 0.0f);
-	glScalef(0.9f, 1.45f, 0.24f);
+	glTranslatef(0.0f, -torsoHeight * 0.10f, torsoRadius * 0.96f);
+	glScalef(0.92f, 1.55f, 0.14f);
 	DrawCuboidPolygon(torsoRadius * 1.0f, torsoHeight * 2.0f, torsoRadius * 0.18f);
 	glPopMatrix();
 
 	glPushMatrix();
-	glTranslatef(-torsoRadius * 0.35f, torsoHeight * 0.05f, torsoRadius * 1.04f);
-	glRotatef(-12.0f, 0.0f, 0.0f, 1.0f);
-	glScalef(0.45f, 1.25f, 0.16f);
-	DrawCuboidPolygon(torsoRadius * 0.16f, torsoHeight * 1.25f, torsoRadius * 0.08f);
+	glTranslatef(-torsoRadius * 0.58f, torsoHeight * 0.02f, torsoRadius * 0.94f);
+	glRotatef(-16.0f, 0.0f, 0.0f, 1.0f);
+	glScalef(0.34f, 1.10f, 0.12f);
+	DrawCuboidPolygon(torsoRadius * 0.14f, torsoHeight * 1.10f, torsoRadius * 0.08f);
 	glPopMatrix();
 
 	glPushMatrix();
-	glTranslatef(torsoRadius * 0.4f, -torsoHeight * 0.95f, -torsoRadius * 0.75f);
-	glRotatef(-16.0f, 1.0f, 0.0f, 0.0f);
-	glScalef(0.42f, 1.6f, 0.14f);
-	DrawCuboidPolygon(torsoRadius * 0.3f, torsoHeight * 1.6f, torsoRadius * 0.1f);
+	glTranslatef(torsoRadius * 0.58f, torsoHeight * 0.02f, torsoRadius * 0.94f);
+	glRotatef(16.0f, 0.0f, 0.0f, 1.0f);
+	glScalef(0.34f, 1.10f, 0.12f);
+	DrawCuboidPolygon(torsoRadius * 0.14f, torsoHeight * 1.10f, torsoRadius * 0.08f);
 	glPopMatrix();
 
 	ResetTint();
@@ -5029,46 +5228,26 @@ void DrawWaterElementGoldTrim(float torsoRadius, float torsoHeight)
 	ApplyTint({ 0.88f, 0.76f, 0.36f });
 
 	glPushMatrix();
-	glTranslatef(0.0f, torsoHeight * 0.68f, torsoRadius * 1.04f);
+	glTranslatef(0.0f, torsoHeight * 0.54f, torsoRadius * 1.28f);
 	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-	DrawEnclosedCylinderWithThickness(quadric, torsoRadius * 0.34f, torsoRadius * 0.34f, torsoRadius * 0.06f, 0.16f, SLICES, STACKS, LOOPS);
+	DrawEnclosedCylinderWithThickness(quadric, torsoRadius * 0.28f, torsoRadius * 0.28f, torsoRadius * 0.05f, 0.16f, SLICES, STACKS, LOOPS);
 	glPopMatrix();
 
 	for (int i = -1; i <= 1; i += 2)
 	{
 		glPushMatrix();
-		glTranslatef(i * torsoRadius * 0.95f, torsoHeight * 0.8f, torsoRadius * 0.15f);
+		glTranslatef(i * torsoRadius * 1.00f, torsoHeight * 0.46f, torsoRadius * 1.18f);
 		glRotatef((float)(-i * 20), 0.0f, 0.0f, 1.0f);
-		glScalef(1.0f, 0.75f, 0.7f);
-		DrawSemiSphere(quadric, torsoRadius * 0.28f, SLICES, STACKS);
+		glScalef(0.72f, 0.55f, 0.42f);
+		DrawSemiSphere(quadric, torsoRadius * 0.18f, SLICES, STACKS);
 		glPopMatrix();
 	}
 
 	glPushMatrix();
-	glTranslatef(0.0f, torsoHeight * 0.22f, torsoRadius * 1.08f);
+	glTranslatef(0.0f, torsoHeight * 0.04f, torsoRadius * 1.30f);
 	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-	DrawEnclosedCylinderWithThickness(quadric, torsoRadius * 0.16f, torsoRadius * 0.16f, torsoRadius * 0.05f, 0.25f, SLICES, STACKS, LOOPS);
+	DrawEnclosedCylinderWithThickness(quadric, torsoRadius * 0.11f, torsoRadius * 0.11f, torsoRadius * 0.04f, 0.24f, SLICES, STACKS, LOOPS);
 	glPopMatrix();
-
-	ResetTint();
-	glDisable(GL_TEXTURE_2D);
-}
-
-void DrawWaterElementSleeves(float torsoRadius, float torsoHeight)
-{
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, silverTexture);
-	ApplyTint({ 0.95f, 0.96f, 1.0f });
-
-	for (int i = -1; i <= 1; i += 2)
-	{
-		glPushMatrix();
-		glTranslatef(i * torsoRadius * 1.02f, torsoHeight * 0.15f, torsoRadius * 0.35f);
-		glRotatef((float)(i * 18), 0.0f, 0.0f, 1.0f);
-		glScalef(0.3f, 1.0f, 0.28f);
-		DrawCuboidPolygon(torsoRadius * 0.22f, torsoHeight * 1.0f, torsoRadius * 0.1f);
-		glPopMatrix();
-	}
 
 	ResetTint();
 	glDisable(GL_TEXTURE_2D);
@@ -5081,21 +5260,20 @@ void DrawWaterElementGem(float torsoRadius, float torsoHeight)
 	ApplyTint({ 0.48f, 0.82f, 1.0f });
 
 	glPushMatrix();
-	glTranslatef(0.0f, torsoHeight * 0.2f, torsoRadius * 1.1f);
-	glScalef(0.4f, 0.75f, 0.18f);
-	DrawCuboidPolygon(torsoRadius * 0.12f, torsoHeight * 0.35f, torsoRadius * 0.08f);
+	glTranslatef(0.0f, torsoHeight * 0.18f, torsoRadius * 1.42f);
+	glScalef(0.46f, 0.82f, 0.12f);
+	DrawCuboidPolygon(torsoRadius * 0.10f, torsoHeight * 0.30f, torsoRadius * 0.06f);
 	glPopMatrix();
 
 	ResetTint();
 	glDisable(GL_TEXTURE_2D);
 }
 
-void DrawWaterElementDecorations(float torsoRadius, float torsoHeight)
+void DrawWaterElementDecorations(float torsoRadius, float torsoHeight, bool isChibi)
 {
 	DrawWaterElementFrontRobe(torsoRadius, torsoHeight);
 	DrawWaterElementGoldTrim(torsoRadius, torsoHeight);
 	DrawWaterElementGem(torsoRadius, torsoHeight);
-	DrawWaterElementSleeves(torsoRadius, torsoHeight);
 }
 
 void DrawWoodElementHeadAccessory(float headBaseRadius)
@@ -5115,7 +5293,7 @@ void DrawWoodElementHeadAccessory(float headBaseRadius)
 	}
 
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
-	ApplyTint({ 0.40f, 0.78f, 0.34f });
+	ApplyTint({0.40f, 0.78f, 0.34f});
 
 	for (int i = -1; i <= 1; i += 2)
 	{
@@ -5149,7 +5327,7 @@ void DrawWoodElementDecorations(float torsoRadius, float torsoHeight, bool isChi
 	}
 
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
-	ApplyTint({ 0.40f, 0.78f, 0.34f });
+	ApplyTint({0.40f, 0.78f, 0.34f});
 
 	for (int i = -1; i <= 1; i += 2)
 	{
@@ -5162,7 +5340,7 @@ void DrawWoodElementDecorations(float torsoRadius, float torsoHeight, bool isChi
 	}
 
 	glBindTexture(GL_TEXTURE_2D, goldTexture);
-	ApplyTint({ 0.72f, 0.58f, 0.22f });
+	ApplyTint({0.72f, 0.58f, 0.22f});
 	glPushMatrix();
 	glTranslatef(0.0f, torsoHeight * 0.18f, torsoRadius * 1.12f);
 	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
@@ -5177,7 +5355,7 @@ void DrawWoodElementHairDecorations(float headBaseRadius)
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
-	ApplyTint({ 0.44f, 0.80f, 0.36f });
+	ApplyTint({0.44f, 0.80f, 0.36f});
 
 	for (int i = -1; i <= 1; i += 2)
 	{
@@ -5197,7 +5375,7 @@ void DrawWoodElementHairDecorations(float headBaseRadius)
 	}
 
 	glBindTexture(GL_TEXTURE_2D, goldTexture);
-	ApplyTint({ 0.76f, 0.62f, 0.24f });
+	ApplyTint({0.76f, 0.62f, 0.24f});
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, headBaseRadius * 1.02f);
 	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
@@ -5212,7 +5390,7 @@ void DrawWoodElementClothAccents(float torsoRadius, float torsoHeight, bool isCh
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
-	ApplyTint({ 0.42f, 0.76f, 0.34f });
+	ApplyTint({0.42f, 0.76f, 0.34f});
 
 	for (int i = -1; i <= 1; i += 2)
 	{
@@ -5225,7 +5403,7 @@ void DrawWoodElementClothAccents(float torsoRadius, float torsoHeight, bool isCh
 	}
 
 	glBindTexture(GL_TEXTURE_2D, woodTexture);
-	ApplyTint({ 0.58f, 0.42f, 0.24f });
+	ApplyTint({0.58f, 0.42f, 0.24f});
 
 	glPushMatrix();
 	glTranslatef(0.0f, -torsoHeight * 0.76f, torsoRadius * 1.04f);
@@ -5294,6 +5472,170 @@ void DrawWaterRainDrop(float x, float y, float z, float scale, float tilt)
 	glPopMatrix();
 
 	glPopMatrix();
+}
+
+void DrawStylizedFireOuterShape()
+{
+	glBegin(GL_POLYGON);
+	glVertex3f(0.00f, -0.56f, 0.0f);
+	glVertex3f(-0.14f, -0.55f, 0.0f);
+	glVertex3f(-0.30f, -0.48f, 0.0f);
+	glVertex3f(-0.44f, -0.34f, 0.0f);
+	glVertex3f(-0.52f, -0.12f, 0.0f);
+	glVertex3f(-0.52f, 0.10f, 0.0f);
+	glVertex3f(-0.45f, 0.30f, 0.0f);
+	glVertex3f(-0.33f, 0.46f, 0.0f);
+	glVertex3f(-0.20f, 0.28f, 0.0f);
+	glVertex3f(-0.11f, 0.12f, 0.0f);
+	glVertex3f(-0.05f, 0.26f, 0.0f);
+	glVertex3f(-0.06f, 0.52f, 0.0f);
+	glVertex3f(0.02f, 0.84f, 0.0f);
+	glVertex3f(0.12f, 1.04f, 0.0f);
+	glVertex3f(0.06f, 0.80f, 0.0f);
+	glVertex3f(0.14f, 0.60f, 0.0f);
+	glVertex3f(0.29f, 0.42f, 0.0f);
+	glVertex3f(0.42f, 0.22f, 0.0f);
+	glVertex3f(0.50f, -0.02f, 0.0f);
+	glVertex3f(0.52f, -0.22f, 0.0f);
+	glVertex3f(0.44f, -0.40f, 0.0f);
+	glVertex3f(0.28f, -0.52f, 0.0f);
+	glVertex3f(0.12f, -0.56f, 0.0f);
+	glEnd();
+}
+
+void DrawStylizedFireMiddleShape()
+{
+	glBegin(GL_POLYGON);
+	glVertex3f(0.00f, -0.56f, 0.0f);
+	glVertex3f(-0.10f, -0.54f, 0.0f);
+	glVertex3f(-0.20f, -0.46f, 0.0f);
+	glVertex3f(-0.26f, -0.28f, 0.0f);
+	glVertex3f(-0.24f, -0.04f, 0.0f);
+	glVertex3f(-0.15f, 0.18f, 0.0f);
+	glVertex3f(-0.07f, 0.06f, 0.0f);
+	glVertex3f(-0.01f, -0.06f, 0.0f);
+	glVertex3f(0.03f, 0.12f, 0.0f);
+	glVertex3f(0.10f, 0.42f, 0.0f);
+	glVertex3f(0.18f, 0.66f, 0.0f);
+	glVertex3f(0.10f, 0.48f, 0.0f);
+	glVertex3f(0.14f, 0.24f, 0.0f);
+	glVertex3f(0.28f, 0.02f, 0.0f);
+	glVertex3f(0.34f, -0.22f, 0.0f);
+	glVertex3f(0.32f, -0.40f, 0.0f);
+	glVertex3f(0.20f, -0.52f, 0.0f);
+	glVertex3f(0.08f, -0.56f, 0.0f);
+	glEnd();
+}
+
+void DrawStylizedFireInnerShape()
+{
+	glBegin(GL_POLYGON);
+	glVertex3f(0.00f, -0.56f, 0.0f);
+	glVertex3f(-0.08f, -0.52f, 0.0f);
+	glVertex3f(-0.14f, -0.40f, 0.0f);
+	glVertex3f(-0.15f, -0.18f, 0.0f);
+	glVertex3f(-0.11f, 0.02f, 0.0f);
+	glVertex3f(-0.05f, -0.06f, 0.0f);
+	glVertex3f(-0.01f, -0.16f, 0.0f);
+	glVertex3f(0.02f, 0.00f, 0.0f);
+	glVertex3f(0.08f, 0.20f, 0.0f);
+	glVertex3f(0.14f, 0.38f, 0.0f);
+	glVertex3f(0.08f, 0.24f, 0.0f);
+	glVertex3f(0.12f, 0.06f, 0.0f);
+	glVertex3f(0.18f, -0.14f, 0.0f);
+	glVertex3f(0.20f, -0.34f, 0.0f);
+	glVertex3f(0.16f, -0.48f, 0.0f);
+	glVertex3f(0.08f, -0.56f, 0.0f);
+	glEnd();
+}
+
+void DrawFireFlame(float x, float y, float z, float scale, float sway, float stretch)
+{
+	glPushMatrix();
+	glTranslatef(x, y, z);
+	glRotatef(sway, 0.0f, 0.0f, 1.0f);
+	glScalef(scale * 0.28f, scale * stretch * 0.32f, scale * 0.55f);
+
+	glColor4f(0.84f, 0.20f, 0.21f, 0.92f);
+	DrawStylizedFireOuterShape();
+
+	glPushMatrix();
+	glTranslatef(0.00f, -0.02f, 0.01f);
+	glScalef(0.72f, 0.78f, 1.0f);
+	glColor4f(1.0f, 0.53f, 0.28f, 0.95f);
+	DrawStylizedFireMiddleShape();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.00f, -0.02f, 0.02f);
+	glScalef(0.46f, 0.56f, 1.0f);
+	glColor4f(0.98f, 0.82f, 0.36f, 0.96f);
+	DrawStylizedFireInnerShape();
+	glPopMatrix();
+
+	glPopMatrix();
+}
+
+void DrawFireElementBackgroundEffect()
+{
+	if (currentCharacterTexturePresetIndex != FIRE_ELEMENT)
+		return;
+
+	float currentTime = (float)(GetTickCount64() % 0xFFFFFFFF) * 0.001f;
+
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glColor4f(0.30f, 0.04f, 0.02f, 0.95f);
+	glPushMatrix();
+	glTranslatef(0.0f, -0.02f, -2.18f);
+	glScalef(1.0f, 1.05f, 0.12f);
+	DrawCuboidPolygon(1.92f, 1.10f, 0.18f);
+	glPopMatrix();
+
+	for (int i = 0; i < 9; i++)
+	{
+		float column = -0.78f + (float)i * 0.19f;
+		float bob = sinf(currentTime * (1.6f + i * 0.06f) + i * 0.55f) * 0.028f;
+		float sway = sinf(currentTime * (2.0f + i * 0.10f) + i * 0.7f) * 4.0f;
+		float stretch = 0.98f + 0.16f * (0.5f + 0.5f * sinf(currentTime * (1.8f + i * 0.11f) + i));
+		float scale = 0.92f + (float)(i % 3) * 0.05f;
+		DrawFireFlame(column, -0.38f + bob, -2.02f - (float)(i % 2) * 0.02f, scale, sway, stretch);
+	}
+
+	for (int i = 0; i < 5; i++)
+	{
+		float column = -0.52f + (float)i * 0.26f;
+		float bob = sinf(currentTime * (2.2f + i * 0.10f) + i * 0.9f) * 0.016f;
+		float sway = sinf(currentTime * (2.6f + i * 0.14f) + i * 0.4f) * 5.0f;
+		float stretch = 0.92f + 0.12f * (0.5f + 0.5f * sinf(currentTime * (2.4f + i * 0.16f) + i * 0.8f));
+		float scale = 0.48f + (float)(i % 2) * 0.04f;
+		DrawFireFlame(column, -0.08f + bob, -1.96f, scale, sway, stretch);
+	}
+
+	for (int i = 0; i < 24; i++)
+	{
+		float phase = (float)i * 0.37f;
+		float drift = fmodf(currentTime * (0.42f + (float)(i % 5) * 0.05f) + phase, 1.45f);
+		float emberY = -0.34f + drift * 0.88f;
+		float emberX = -0.82f + (float)(i % 12) * 0.14f + sinf(currentTime * (1.6f + (float)(i % 4) * 0.15f) + phase) * 0.03f;
+		float emberZ = -1.94f + (float)(i % 3) * 0.02f;
+		float emberScale = 0.010f + (float)(i % 4) * 0.003f;
+
+		glColor4f(1.0f, 0.70f, 0.18f, 0.55f);
+		glPushMatrix();
+		glTranslatef(emberX, emberY, emberZ);
+		glScalef(1.0f, 1.35f, 1.0f);
+		DrawSphere(quadric, emberScale, 10, 10);
+		glPopMatrix();
+	}
+
+	glDisable(GL_BLEND);
+	glEnable(GL_LIGHTING);
+	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+	ResetMaterial();
 }
 
 void DrawWaterElementBackgroundEffect()
@@ -5413,7 +5755,7 @@ void DrawWoodElementBackgroundEffect()
 	glEnable(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
-	ApplyTint({ 0.42f, 0.74f, 0.34f });
+	ApplyTint({0.42f, 0.74f, 0.34f});
 	glPushMatrix();
 	glTranslatef(0.0f, -0.56f, -2.15f);
 	glScalef(1.0f, 0.55f, 0.18f);
@@ -5433,12 +5775,145 @@ void DrawWoodElementBackgroundEffect()
 	ResetMaterial();
 }
 
+void DrawMetalElementBackgroundEffect()
+{
+	if (currentCharacterTexturePresetIndex != METAL_ELEMENT)
+		return;
+
+	glDisable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, steelTexture);
+	ApplyTint({0.78f, 0.82f, 0.88f});
+
+	glPushMatrix();
+	glTranslatef(0.0f, -0.04f, -2.18f);
+	glScalef(1.0f, 1.05f, 0.12f);
+	DrawCuboidPolygon(1.85f, 1.12f, 0.18f);
+	glPopMatrix();
+
+	glBindTexture(GL_TEXTURE_2D, goldTexture);
+	ApplyTint({0.88f, 0.76f, 0.34f});
+
+	glPushMatrix();
+	glTranslatef(0.0f, 0.30f, -2.10f);
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+	DrawEnclosedCylinderWithThickness(quadric, 0.17f, 0.17f, 0.05f, 0.18f, SLICES, STACKS, LOOPS);
+	glPopMatrix();
+
+	for (int i = -1; i <= 1; i += 2)
+	{
+		glPushMatrix();
+		glTranslatef((float)i * 0.44f, 0.18f, -2.08f);
+		glRotatef((float)(i * 18), 0.0f, 0.0f, 1.0f);
+		glScalef(1.0f, 0.72f, 0.22f);
+		DrawCuboidPolygon(0.13f, 0.52f, 0.08f);
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef((float)i * 0.62f, -0.08f, -2.06f);
+		glScalef(0.75f, 0.75f, 0.28f);
+		DrawSemiSphere(quadric, 0.12f, SLICES, STACKS);
+		glPopMatrix();
+	}
+
+	glBindTexture(GL_TEXTURE_2D, silverTexture);
+	ApplyTint({0.96f, 0.97f, 1.0f});
+
+	for (int row = 0; row < 2; row++)
+	{
+		for (int col = -2; col <= 2; col++)
+		{
+			glPushMatrix();
+			glTranslatef((float)col * 0.26f, -0.12f - row * 0.26f, -2.04f);
+			glScalef(0.42f, 0.42f, 0.12f);
+			DrawCuboidPolygon(0.16f, 0.16f, 0.05f);
+			glPopMatrix();
+		}
+	}
+
+	ResetTint();
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glEnable(GL_LIGHTING);
+	ResetMaterial();
+}
+
+void DrawEarthElementBackgroundEffect()
+{
+	if (currentCharacterTexturePresetIndex != EARTH_ELEMENT)
+		return;
+
+	glDisable(GL_LIGHTING);
+	glEnable(GL_TEXTURE_2D);
+
+	glBindTexture(GL_TEXTURE_2D, dirtTexture);
+	ApplyTint({0.62f, 0.46f, 0.26f});
+
+	glPushMatrix();
+	glTranslatef(0.0f, -0.56f, -2.15f);
+	glScalef(1.0f, 0.55f, 0.20f);
+	DrawCuboidPolygon(1.95f, 0.42f, 0.22f);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0f, -0.12f, -2.18f);
+	glScalef(1.0f, 0.82f, 0.12f);
+	DrawCuboidPolygon(1.75f, 0.78f, 0.16f);
+	glPopMatrix();
+
+	glBindTexture(GL_TEXTURE_2D, brickTexture);
+	ApplyTint({0.72f, 0.58f, 0.38f});
+
+	for (int i = -1; i <= 1; i++)
+	{
+		glPushMatrix();
+		glTranslatef((float)i * 0.52f, 0.06f, -2.06f);
+		glScalef(0.34f, 0.92f, 0.18f);
+		DrawCuboidPolygon(0.28f, 0.52f, 0.12f);
+		glPopMatrix();
+	}
+
+	glPushMatrix();
+	glTranslatef(-0.82f, -0.08f, -2.08f);
+	glScalef(0.26f, 1.10f, 0.18f);
+	DrawCuboidPolygon(0.18f, 0.62f, 0.12f);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.82f, -0.08f, -2.08f);
+	glScalef(0.26f, 1.10f, 0.18f);
+	DrawCuboidPolygon(0.18f, 0.62f, 0.12f);
+	glPopMatrix();
+
+	glBindTexture(GL_TEXTURE_2D, goldTexture);
+	ApplyTint({0.86f, 0.74f, 0.34f});
+
+	glPushMatrix();
+	glTranslatef(0.0f, 0.28f, -2.02f);
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+	DrawEnclosedCylinderWithThickness(quadric, 0.12f, 0.12f, 0.04f, 0.22f, SLICES, STACKS, LOOPS);
+	glPopMatrix();
+
+	for (int i = -1; i <= 1; i += 2)
+	{
+		glPushMatrix();
+		glTranslatef((float)i * 0.32f, 0.26f, -2.01f);
+		glScalef(0.40f, 0.60f, 0.16f);
+		DrawCuboidPolygon(0.12f, 0.20f, 0.06f);
+		glPopMatrix();
+	}
+
+	ResetTint();
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glEnable(GL_LIGHTING);
+	ResetMaterial();
+}
+
 void DrawCharacterHeadAccessory(float headBaseRadius)
 {
 	switch (currentCharacterTexturePresetIndex)
 	{
 	case WATER_ELEMENT:
-		DrawWaterElementHeadJewel(headBaseRadius);
 		break;
 
 	case METAL_ELEMENT:
@@ -5491,7 +5966,8 @@ void DrawCharacterBodyDecorations(float torsoRadius, float torsoHeight, bool isC
 		break;
 
 	case WATER_ELEMENT:
-		DrawWaterElementDecorations(torsoRadius, torsoHeight);
+		DrawWaterElementGoldTrim(torsoRadius, torsoHeight);
+		DrawWaterElementGem(torsoRadius, torsoHeight);
 		break;
 
 	case WOOD_ELEMENT:
@@ -5941,8 +6417,6 @@ void DrawSea(float width, float depth, float y)
 	glPopMatrix();
 }
 
-
-
 // -------------------------------------------------------
 
 void Display()
@@ -5963,13 +6437,13 @@ void Display()
 	ResetMaterial();
 
 	DrawLightIndicator();
+	DrawFireElementBackgroundEffect();
 	DrawWaterElementBackgroundEffect();
 	DrawWoodElementBackgroundEffect();
+	DrawMetalElementBackgroundEffect();
+	DrawEarthElementBackgroundEffect();
 
 	// ZhaLing
-	characterX = 0.0f;
-	characterY = -0.13f;
-	characterZ = -1.0f;
 	glPushMatrix();
 	glTranslatef(characterX, characterY, characterZ);
 	DrawCharacter();
