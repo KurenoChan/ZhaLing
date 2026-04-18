@@ -236,6 +236,12 @@ GLfloat silk_matDiffuse[] = { 0.25f, 0.25f, 0.25f, 1.0f };
 GLfloat silk_matSpecular[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 GLfloat silk_shininess = 90.0f;
 
+// Ground
+GLfloat ground_matAmbient[] = { 0.7f, 0.7f, 0.7f, 1.0f };
+GLfloat ground_matDiffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+GLfloat ground_matSpecular[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+GLfloat ground_shininess = 90.0f;
+
 // -------------------
 // GLU Quadric Objects
 // -------------------
@@ -275,6 +281,7 @@ GLuint beltTexture;
 // Environment Textures
 GLuint skyTexture;
 GLuint seaTexture;
+GLuint groundTexture;
 
 // Weapon Textures
 GLuint goldenTexture;
@@ -1469,7 +1476,9 @@ void LoadEnvironmentTextures()
 {
 	skyTexture = LoadTexture("Assets/Environment/Sky.bmp");
 	seaTexture = LoadTexture("Assets/Environment/Sea.bmp");
+	groundTexture = LoadTexture("Assets/Environment/Ground.bmp");
 }
+
 void LoadWeaponTextures()
 {
 	// Spear Texture
@@ -1736,6 +1745,25 @@ void DrawLineWithColor(float length, float width, Color c)
 // ***********
 //	3D Shapes
 // ***********
+
+void DrawPlane(float width, float depth)
+{
+	float w = width / 2;
+	float d = depth / 2;
+
+	float repeat = 30.0f; // Texture repeat factor
+
+	glNormal3f(0.0f, 1.0f, 0.0f); // Upward normal for lighting
+
+	glPushMatrix();
+	glBegin(GL_QUADS);
+	glTexCoord2f(0.0f, repeat); glVertex3f(-w, 0.0f, -d);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(-w, 0.0f, d);
+	glTexCoord2f(repeat, 0.0f); glVertex3f(w, 0.0f, d);
+	glTexCoord2f(repeat, repeat); glVertex3f(w, 0.0f, -d);
+	glEnd();
+	glPopMatrix();
+}
 
 void DrawCuboidPolygon(float width, float height, float depth)
 {
@@ -2726,6 +2754,10 @@ void DrawEnclosedBentCylinder(GLUquadricObj* cylinder, float tubeRadius, float e
 void DrawSphere(GLUquadricObj* quadric, float radius, int slices, int stacks)
 {
 	glPushMatrix();
+	gluQuadricDrawStyle(quadric, GLU_FILL);
+	gluQuadricNormals(quadric, GLU_SMOOTH);
+	gluQuadricTexture(quadric, GL_TRUE); // critical
+
 	gluSphere(quadric, radius, slices, stacks);
 	glPopMatrix();
 }
@@ -5590,7 +5622,7 @@ void DrawFireElementBackgroundEffect()
 
 	glColor4f(0.30f, 0.04f, 0.02f, 0.95f);
 	glPushMatrix();
-	glTranslatef(0.0f, -0.02f, -2.18f);
+	glTranslatef(0.0f, 0.2f, -2.18f);
 	glScalef(1.0f, 1.05f, 0.12f);
 	DrawCuboidPolygon(1.92f, 1.10f, 0.18f);
 	glPopMatrix();
@@ -5602,7 +5634,7 @@ void DrawFireElementBackgroundEffect()
 		float sway = sinf(currentTime * (2.0f + i * 0.10f) + i * 0.7f) * 4.0f;
 		float stretch = 0.98f + 0.16f * (0.5f + 0.5f * sinf(currentTime * (1.8f + i * 0.11f) + i));
 		float scale = 0.92f + (float)(i % 3) * 0.05f;
-		DrawFireFlame(column, -0.38f + bob, -2.02f - (float)(i % 2) * 0.02f, scale, sway, stretch);
+		DrawFireFlame(column, -0.16f + bob, -2.02f - (float)(i % 2) * 0.02f, scale, sway, stretch);
 	}
 
 	for (int i = 0; i < 5; i++)
@@ -5612,7 +5644,7 @@ void DrawFireElementBackgroundEffect()
 		float sway = sinf(currentTime * (2.6f + i * 0.14f) + i * 0.4f) * 5.0f;
 		float stretch = 0.92f + 0.12f * (0.5f + 0.5f * sinf(currentTime * (2.4f + i * 0.16f) + i * 0.8f));
 		float scale = 0.48f + (float)(i % 2) * 0.04f;
-		DrawFireFlame(column, -0.08f + bob, -1.96f, scale, sway, stretch);
+		DrawFireFlame(column, 0.14f + bob, -1.96f, scale, sway, stretch);
 	}
 
 	for (int i = 0; i < 24; i++)
@@ -6368,8 +6400,11 @@ void DrawCharacter()
 // ENVIRONMENT SETUP
 // ------------------
 
-void DrawSky(GLUquadricObj* quadric, float radius, int slices, int stacks)
+void DrawSky(float radius)
 {
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, skyTexture);
+
 	glPushMatrix();
 
 	// Optional: keep the sky fixed relative to camera
@@ -6377,44 +6412,51 @@ void DrawSky(GLUquadricObj* quadric, float radius, int slices, int stacks)
 
 	// Invert normals for inside view
 	gluQuadricOrientation(quadric, GLU_INSIDE);
-	glColor3f(0.53f, 0.81f, 0.92f); // light blue sky color
+	//glColor3f(0.53f, 0.81f, 0.92f); // light blue sky color
 
-	gluSphere(quadric, radius, slices, stacks);
-
+	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	DrawSphere(quadric, radius, SLICES, STACKS);
 	glPopMatrix();
+	
+	gluQuadricOrientation(quadric, GLU_OUTSIDE); // restore
+	glDisable(GL_TEXTURE_2D);
 }
 
-void DrawSea(float width, float depth, float y)
+void DrawGround(float width, float depth)
 {
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, groundTexture);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, ground_matAmbient);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, ground_matDiffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, ground_matSpecular);
+	glMaterialf(GL_FRONT, GL_SHININESS, ground_shininess);
+
 	glPushMatrix();
-	glTranslatef(0.0f, y, 0.0f);
+	DrawPlane(width, depth);
+	glPopMatrix();
 
-	glEnable(GL_COLOR_MATERIAL);
+	ResetMaterial();
 
-	glBindTexture(GL_TEXTURE_2D, seaTexture);
-	glColor3f(1.0f, 1.0f, 1.0f);
+	glDisable(GL_TEXTURE_2D);
+}
 
-	glBegin(GL_QUADS);
-	float w = width / 2.0f;
-	float d = depth / 2.0f;
+void DrawWorld(float radius)
+{
+	// Sky
+	glPushMatrix();
+	glDisable(GL_LIGHTING);
+	DrawSky(radius);
+	glEnable(GL_LIGHTING);
 
-	glNormal3f(0.0f, 1.0f, 0.0f); // Upward normal for lighting
-
-	float repeat = 30.0f; // Texture repeat factor
-
-	glTexCoord2f(0.0f, repeat);
-	glVertex3f(-w, 0.0f, -d);
-	glTexCoord2f(0.0f, 0.0f);
-	glVertex3f(-w, 0.0f, d);
-	glTexCoord2f(repeat, 0.0f);
-	glVertex3f(w, 0.0f, d);
-	glTexCoord2f(repeat, repeat);
-	glVertex3f(w, 0.0f, -d);
-	glEnd();
-
-	glDisable(GL_COLOR_MATERIAL);
+	// Ground
+	glPushMatrix();
+	DrawGround(radius, radius);
+	glPopMatrix();
+	// END Ground
 
 	glPopMatrix();
+	// END Sky
 }
 
 // -------------------------------------------------------
@@ -6442,6 +6484,16 @@ void Display()
 	DrawWoodElementBackgroundEffect();
 	DrawMetalElementBackgroundEffect();
 	DrawEarthElementBackgroundEffect();
+
+	float worldRadius = 100.0f;
+	float worldOffsetY = -0.4f;
+
+	// World
+	glPushMatrix();
+	glTranslatef(0.0f, worldOffsetY, 0.0f);
+	DrawWorld(worldRadius);
+	glPopMatrix();
+	// END World
 
 	// ZhaLing
 	glPushMatrix();
