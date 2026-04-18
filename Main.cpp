@@ -2344,19 +2344,19 @@ void SetupCameraMode()
 	case PERSPECTIVE:
 		SetPerspectiveProjection(60.0f, 1.0f, 0.1f, 100.0f);
 		// Camera (inverse transform)
-		glTranslatef(-cameraX, -cameraY, -cameraZ);
 		glRotatef(-cameraAngleX, 1.0f, 0.0f, 0.0f);
 		glRotatef(-cameraAngleY, 0.0f, 1.0f, 0.0f);
 		glRotatef(-cameraAngleZ, 0.0f, 0.0f, 1.0f);
+		glTranslatef(-cameraX, -cameraY, -cameraZ);
 		break;
 
 	case ORTHO:
 		SetOrthoProjection(-0.5f, 0.5f, -0.5f, 0.5f, 0.1f, 100.0f);
 		// Camera (inverse transform)
-		glTranslatef(-cameraX, -cameraY, -cameraZ);
 		glRotatef(-cameraAngleX, 1.0f, 0.0f, 0.0f);
 		glRotatef(-cameraAngleY, 0.0f, 1.0f, 0.0f);
 		glRotatef(-cameraAngleZ, 0.0f, 0.0f, 1.0f);
+		glTranslatef(-cameraX, -cameraY, -cameraZ);
 		break;
 
 	case LSIDE:
@@ -3533,67 +3533,72 @@ void DrawFinger(float length, float bendAngle) {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, skinTexture);
 
-	float radius = 0.005f;
-	float seg1 = length * 0.4f;
-	float seg2 = length * 0.3f;
-	float seg3 = length * 0.3f;
-
-	// Soften the bend slightly so the fingers don't clip into the palm
-	float jointBend = bendAngle * 0.8f;
-
-	glPushMatrix(); // Start Finger Matrix
-
-	// ==========================================
-	// JOINT 1 (Base Knuckle)
-	// ==========================================
-	glRotatef(jointBend, 1.0f, 0.0f, 0.0f); // Curl base
-	DrawSphere(quadric, radius, SLICES, STACKS);
-
-	// --- Segment 1 ---
+	// Finger Joint 1
+	float joint1Radius = 0.005f;
 	glPushMatrix();
-	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f); // Rotate cylinder to point UP
-	DrawEnclosedCylinder(quadric, radius * 0.8f, radius * 0.8f, seg1, SLICES, STACKS);
-	glPopMatrix();
+	DrawSphere(quadric, joint1Radius, SLICES, STACKS);
 
-	// ==========================================
-	// JOINT 2 (Middle Knuckle)
-	// ==========================================
-	glTranslatef(0.0f, seg1, 0.0f); // Move to the end of Segment 1
-	glRotatef(jointBend, 1.0f, 0.0f, 0.0f); // Curl middle
-	DrawSphere(quadric, radius * 0.8f, SLICES, STACKS);
-
-	// --- Segment 2 ---
+	// Finger 1
+	float finger1Length = length * 0.5f;
 	glPushMatrix();
-	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f); // Make sure it is 1.0f on X!
-	DrawEnclosedCylinder(quadric, radius * 0.6f, radius * 0.6f, seg2, SLICES, STACKS);
-	glPopMatrix();
+	glTranslatef(0.0f, 0.0f, finger1Length / 2);
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+	DrawEnclosedCylinder(quadric, joint1Radius * 0.8f, joint1Radius * 0.5f, finger1Length, SLICES, STACKS);
 
-	// ==========================================
-	// JOINT 3 (Tip Knuckle)
-	// ==========================================
-	glTranslatef(0.0f, seg2, 0.0f); // Move to the end of Segment 2
-	glRotatef(jointBend, 1.0f, 0.0f, 0.0f); // Curl tip
-	DrawSphere(quadric, radius * 0.6f, SLICES, STACKS);
-
-	// --- Segment 3 ---
+	// Finger Joint 2
+	float joint2Radius = joint1Radius * 0.8f;
 	glPushMatrix();
-	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f); // Make sure it is 1.0f on X!
-	DrawEnclosedCylinder(quadric, radius * 0.5f, radius * 0.5f, seg3, SLICES, STACKS);
-	glPopMatrix();
+	glTranslatef(0.0f, finger1Length / 2, 0.0f);
+	DrawSphere(quadric, joint2Radius, SLICES, STACKS);
 
-	// ==========================================
-	// CLAW TIP (The Nail)
-	// ==========================================
-	glTranslatef(0.0f, seg3, 0.0f); // Move to the end of Segment 3
+	// Finger 2
+	float finger2Length = length / 2;
 	glPushMatrix();
-	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f); // Make sure it is 1.0f on X!
-	DrawCylinder(quadric, radius * 0.5f, 0.0f, radius * 1.5f, SLICES, STACKS);
-	glPopMatrix();
+	glTranslatef(0.0f, finger1Length / 2 + finger2Length / 2, 0.0f);
+	DrawEnclosedCylinder(quadric, joint2Radius * 0.8f, joint2Radius * 0.5f, finger2Length, SLICES, STACKS);
 
-	glPopMatrix(); // End Finger Matrix
+	// Finger Joint 3
+	float joint3Radius = joint2Radius * 0.8f;
+	glPushMatrix();
+	glTranslatef(0.0f, finger2Length / 2, 0.0f);
+	DrawSphere(quadric, joint3Radius, SLICES, STACKS);
+
+	// Finger 3
+	float finger3Length = length / 2;
+	glPushMatrix();
+	glTranslatef(0.0f, finger3Length / 2, 0.0f);
+	DrawEnclosedCylinder(quadric, joint3Radius * 0.8f, joint3Radius * 0.5f, finger3Length, SLICES, STACKS);
+
+	// Finger Tip [Claw]
+	float clawRadius = joint3Radius * 0.7f;
+	float clawHeight = joint3Radius * 2.0f;
+	glPushMatrix();
+	glTranslatef(0.0f, finger3Length / 2, 0.0f);
+	DrawCylinder(quadric, clawRadius, 0.0f, clawHeight, SLICES, STACKS);
+	glPopMatrix();
+	// END Finger Tip [Claw]
+
+	glPopMatrix();
+	// END Finger 3
+
+	glPopMatrix();
+	// END Finger Joint 3
+
+	glPopMatrix();
+	// END Finger 2
+
+	glPopMatrix();
+	// END Finger Joint 2
+
+	glPopMatrix();
+	// END Finger 1
+
+	glPopMatrix();
+	// END Finger Joint 1
 
 	glDisable(GL_TEXTURE_2D);
 }
+
 void DrawHand() {
 	float baseRadius = 0.018f;
 	float palmSize = 0.018f;
