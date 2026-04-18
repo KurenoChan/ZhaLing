@@ -190,28 +190,28 @@ GLuint currentTexture;
 // Lighting Setup
 // -------------------
 // LIGHT 1: Default Spotlight
-GLfloat light1Ambient[] = {0.7f, 0.7f, 0.7f, 1.0f};	 // ambient = minimum brightness of scene
-GLfloat light1Diffuse[] = {1.0f, 1.0f, 1.0f, 1.0f};	 // diffuse = real lighting that reveals geometry
-GLfloat light1Specular[] = {1.0f, 1.0f, 1.0f, 1.0f}; // specular = how glossy the surface looks
-Color light1Color = {0.8f, 0.8f, 0.8f};
+GLfloat light1Ambient[] = { 0.7f, 0.7f, 0.7f, 1.0f };	 // ambient = minimum brightness of scene
+GLfloat light1Diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };	 // diffuse = real lighting that reveals geometry
+GLfloat light1Specular[] = { 1.0f, 1.0f, 1.0f, 1.0f }; // specular = how glossy the surface looks
+Color light1Color = { 0.8f, 0.8f, 0.8f };
 
 // LIGHT 2: Warm Sunset / Golden Hour
-GLfloat light2Ambient[] = {0.2f, 0.1f, 0.1f, 1.0f};	 // Deep reddish shadows
-GLfloat light2Diffuse[] = {1.0f, 0.7f, 0.3f, 1.0f};	 // Strong orange/gold light
-GLfloat light2Specular[] = {1.0f, 0.9f, 0.7f, 1.0f}; // Bright yellow-white glints
-Color light2Color = {1.0f, 0.7f, 0.3f};
+GLfloat light2Ambient[] = { 0.2f, 0.1f, 0.1f, 1.0f };	 // Deep reddish shadows
+GLfloat light2Diffuse[] = { 1.0f, 0.7f, 0.3f, 1.0f };	 // Strong orange/gold light
+GLfloat light2Specular[] = { 1.0f, 0.9f, 0.7f, 1.0f }; // Bright yellow-white glints
+Color light2Color = { 1.0f, 0.7f, 0.3f };
 
 // LIGHT 3: Cold Moonlight / Cyberpunk
-GLfloat light3Ambient[] = {0.1f, 0.1f, 0.2f, 1.0f};	 // Faint blue ambient
-GLfloat light3Diffuse[] = {0.4f, 0.6f, 1.0f, 1.0f};	 // Cool blue-white light
-GLfloat light3Specular[] = {0.8f, 0.8f, 1.0f, 1.0f}; // Sharp icy highlights
-Color light3Color = {0.4f, 0.6f, 1.0f};
+GLfloat light3Ambient[] = { 0.1f, 0.1f, 0.2f, 1.0f };	 // Faint blue ambient
+GLfloat light3Diffuse[] = { 0.4f, 0.6f, 1.0f, 1.0f };	 // Cool blue-white light
+GLfloat light3Specular[] = { 0.8f, 0.8f, 1.0f, 1.0f }; // Sharp icy highlights
+Color light3Color = { 0.4f, 0.6f, 1.0f };
 
 // Collection of lights for easy looping
-const GLfloat *lightsAmbient[] = {light1Ambient, light2Ambient, light3Ambient};
-const GLfloat *lightsDiffuse[] = {light1Diffuse, light2Diffuse, light3Diffuse};
-const GLfloat *lightsSpecular[] = {light1Specular, light2Specular, light3Specular};
-const Color *lightsColor[] = {&light1Color, &light2Color, &light3Color};
+const GLfloat* lightsAmbient[] = { light1Ambient, light2Ambient, light3Ambient };
+const GLfloat* lightsDiffuse[] = { light1Diffuse, light2Diffuse, light3Diffuse };
+const GLfloat* lightsSpecular[] = { light1Specular, light2Specular, light3Specular };
+const Color* lightsColor[] = { &light1Color, &light2Color, &light3Color };
 
 const int NUM_LIGHTS = sizeof(lightsAmbient) / sizeof(lightsAmbient[0]);
 int lightIndex = 0;
@@ -219,28 +219,28 @@ int lightIndex = 0;
 // -------------------
 // Material Setup
 // -------------------
-GLfloat defaultAmbient[] = {0.2f, 0.2f, 0.2f, 1.0f};
-GLfloat defaultDiffuse[] = {0.8f, 0.8f, 0.8f, 1.0f};
-GLfloat defaultSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
+GLfloat defaultAmbient[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+GLfloat defaultDiffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+GLfloat defaultSpecular[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 GLfloat defaultShininess = 0.0f;
 
 // Gold Plate
-GLfloat gold_matAmbient[] = {0.247f, 0.199f, 0.074f, 1.0f};
-GLfloat gold_matDiffuse[] = {0.751f, 0.606f, 0.226f, 1.0f};
-GLfloat gold_matSpecular[] = {0.628f, 0.556f, 0.366f, 1.0f};
+GLfloat gold_matAmbient[] = { 0.247f, 0.199f, 0.074f, 1.0f };
+GLfloat gold_matDiffuse[] = { 0.751f, 0.606f, 0.226f, 1.0f };
+GLfloat gold_matSpecular[] = { 0.628f, 0.556f, 0.366f, 1.0f };
 GLfloat gold_shininess = 51.2f;
 
 // Gray Silk Scarf
-GLfloat silk_matAmbient[] = {0.05f, 0.05f, 0.05f, 1.0f};
-GLfloat silk_matDiffuse[] = {0.25f, 0.25f, 0.25f, 1.0f};
-GLfloat silk_matSpecular[] = {0.8f, 0.8f, 0.8f, 1.0f};
+GLfloat silk_matAmbient[] = { 0.05f, 0.05f, 0.05f, 1.0f };
+GLfloat silk_matDiffuse[] = { 0.25f, 0.25f, 0.25f, 1.0f };
+GLfloat silk_matSpecular[] = { 0.8f, 0.8f, 0.8f, 1.0f };
 GLfloat silk_shininess = 90.0f;
 
 // -------------------
 // GLU Quadric Objects
 // -------------------
-GLUquadricObj *quadric = gluNewQuadric();
-GLUquadric *skyQuadric = gluNewQuadric();
+GLUquadricObj* quadric = gluNewQuadric();
+GLUquadric* skyQuadric = gluNewQuadric();
 
 // -------------------
 // Textures Setup
@@ -375,7 +375,7 @@ void ApplyCharacterTexturePreset()
 	if (characterTexturePresets.empty())
 		return;
 
-	const CharacterTexturePreset &preset = characterTexturePresets[currentCharacterTexturePresetIndex];
+	const CharacterTexturePreset& preset = characterTexturePresets[currentCharacterTexturePresetIndex];
 	skinTexture = preset.skin;
 	hairTexture = preset.hair;
 	redBlackFlameTexture = preset.outfitPrimary;
@@ -388,11 +388,11 @@ void InitializeCharacterTexturePresets()
 	characterTexturePresets.clear();
 
 	// Five Elements order: Fire, Water, Wood, Metal, Earth
-	characterTexturePresets.push_back({skinTexture, hairTexture, redBlackFlameTexture, redClothTexture, goldTexture});
-	characterTexturePresets.push_back({skinTexture, seaTexture, skyTexture, skyTexture, silverTexture});
-	characterTexturePresets.push_back({skinTexture, grassTexture, woodTexture, grassTexture, goldTexture});
-	characterTexturePresets.push_back({skinTexture, steelTexture, goldTexture, goldTexture, goldTexture});
-	characterTexturePresets.push_back({skinTexture, brownClothTexture, dirtTexture, dirtTexture, goldTexture});
+	characterTexturePresets.push_back({ skinTexture, hairTexture, redBlackFlameTexture, redClothTexture, goldTexture });
+	characterTexturePresets.push_back({ skinTexture, seaTexture, skyTexture, skyTexture, silverTexture });
+	characterTexturePresets.push_back({ skinTexture, grassTexture, woodTexture, grassTexture, goldTexture });
+	characterTexturePresets.push_back({ skinTexture, goldTexture, goldTexture, goldTexture, goldTexture });
+	characterTexturePresets.push_back({ skinTexture, brownClothTexture, brickTexture, brownClothTexture, goldTexture });
 
 	currentCharacterTexturePresetIndex = FIRE_ELEMENT;
 	ApplyCharacterTexturePreset();
@@ -403,15 +403,15 @@ Color GetElementClothTint()
 	switch (currentCharacterTexturePresetIndex)
 	{
 	case WATER_ELEMENT:
-		return {0.15f, 0.28f, 0.42f};
+		return { 0.15f, 0.28f, 0.42f };
 	case WOOD_ELEMENT:
-		return {0.35f, 0.75f, 0.32f};
+		return { 0.35f, 0.75f, 0.32f };
 	case METAL_ELEMENT:
-		return {0.95f, 0.82f, 0.28f};
+		return { 0.95f, 0.82f, 0.28f };
 	case EARTH_ELEMENT:
-		return {0.55f, 0.36f, 0.20f};
+		return { 0.55f, 0.36f, 0.20f };
 	default:
-		return {1.0f, 1.0f, 1.0f};
+		return { 1.0f, 1.0f, 1.0f };
 	}
 }
 
@@ -420,15 +420,15 @@ Color GetElementAccentTint()
 	switch (currentCharacterTexturePresetIndex)
 	{
 	case WATER_ELEMENT:
-		return {0.86f, 0.72f, 0.36f};
+		return { 0.86f, 0.72f, 0.36f };
 	case WOOD_ELEMENT:
-		return {0.55f, 0.88f, 0.45f};
+		return { 0.55f, 0.88f, 0.45f };
 	case METAL_ELEMENT:
-		return {1.0f, 0.86f, 0.35f};
+		return { 1.0f, 0.86f, 0.35f };
 	case EARTH_ELEMENT:
-		return {0.62f, 0.42f, 0.24f};
+		return { 0.62f, 0.42f, 0.24f };
 	default:
-		return {1.0f, 1.0f, 1.0f};
+		return { 1.0f, 1.0f, 1.0f };
 	}
 }
 
@@ -445,7 +445,7 @@ Color GetElementHairTint()
 	case EARTH_ELEMENT:
 		return {0.58f, 0.42f, 0.24f};
 	default:
-		return {1.0f, 1.0f, 1.0f};
+		return { 1.0f, 1.0f, 1.0f };
 	}
 }
 
@@ -786,7 +786,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 	case WM_KEYDOWN:
 	{
-		PartRotation &part = parts[currentPart];
+		PartRotation& part = parts[currentPart];
 
 		switch (wParam)
 		{
@@ -802,19 +802,9 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			ResetModel();
 
 			currentSceneMode = WEAPON_CUSTOM;
-			break;
-		case 0x32: // Press 2 - ANIMATION MODE
-			ResetCameraPosition();
-			ResetCameraAngle();
-			ResetLightPosition();
-			ResetToggle();
-			ResetModel();
 
-			currentSceneMode = ANIMATION;
-			currentWeaponAnim = 1; // Back flip
-			isPlaying = false; // Start paused
-			animFrame = 0.0f;  // Reset to the beginning
 			break;
+
 		case 0x31: // Press 1 - Interactive Movements
 			ResetCameraPosition();
 			ResetCameraAngle();
@@ -826,22 +816,19 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			currentPart = HEAD;
 			currentPart = HEAD;
 			currentPart = HEAD;
-
 			break;
-		case 0x4E: // 'N' Key
-			if (currentSceneMode == WEAPON_CUSTOM)
-			{
-				wheelRotationSpeed += 0.05f; // Accelerate spin
-			}
-			else
-			{
-				// Your existing degrip logic
-				currentGrip -= 2.0f;
-				if (currentGrip < -50.0f)
-				{
-					currentGrip = -50.0f;
-				}
-			}
+
+		case 0x32: // Press 2 - ANIMATION MODE
+			ResetCameraPosition();
+			ResetCameraAngle();
+			ResetLightPosition();
+			ResetToggle();
+			ResetModel();
+
+			currentSceneMode = ANIMATION;
+      currentWeaponAnim = 1; // Back flip
+			isPlaying = false; // Start paused
+			animFrame = 0.0f;  // Reset to the beginning
 			break;
 
 		case 0x39: // Press 9 - Character Customization
@@ -869,12 +856,25 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				wheelRotationSpeed -= 0.05f; // Decelerate / spin backward
 			}
 			break;
-		case 'T':				 // 'N' Key - Degrip
+		case 'T': // 'T' Key - Degrip
 			currentGrip += 2.0f; // Uncurl the fingers
 			// Stop them from bending backwards
 			if (currentGrip > 70.0f)
 			{
 				currentGrip = 70.0f;
+			}
+			break;
+
+		case 0x4E: // 'N' Key
+			if (currentSceneMode == WEAPON_CUSTOM) {
+				wheelRotationSpeed += 0.05f; // Accelerate spin
+			}
+			else {
+				// Your existing degrip logic
+				currentGrip -= 2.0f;
+				if (currentGrip < -50.0f) {
+					currentGrip = -50.0f;
+				}
 			}
 			break;
 
@@ -1235,162 +1235,176 @@ void InitParts()
 {
 	// HEAD
 	parts[HEAD] =
-		{
-			0.0f, 0.0f, 0.0f, // current angles
+	{
+		0.0f, 0.0f, 0.0f, // current angles
 
-			0.0f, 0.0f, 0.0f, // defaults
+		0.0f, 0.0f, 0.0f, // defaults
 
-			-10.0f, 20.0f, // X min/max
-			-60.0f, 60.0f, // Y min/max
-			-20.0f, 20.0f  // Z min/max
-		};
+		-10.0f, 20.0f, // X min/max
+		-60.0f, 60.0f, // Y min/max
+		-20.0f, 20.0f  // Z min/max
+	};
 
 	// TORSO
 	parts[UPPER_TORSO] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-5.0f, 20.0f,
-			-15.0f, 15.0f,
-			-8.0f, 8.0f};
+		-5.0f, 20.0f,
+		-15.0f, 15.0f,
+		-8.0f, 8.0f
+	};
 
 	parts[LOWER_TORSO] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-20.0f, 5.0f,
-			-15.0f, 15.0f,
-			-8.0f, 8.0f};
+		-20.0f, 5.0f,
+		-15.0f, 15.0f,
+		-8.0f, 8.0f
+	};
 
 	// LEFT ARM
 	parts[LEFT_UPPER_ARM] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
-			-60.0f, 60.0f,
-			-30.0f, 100.0f,
-			-80.0f, 80.0f};
+		0.0f, 0.0f, 0.0f,
+
+		-60.0f, 60.0f,
+		-30.0f, 100.0f,
+		-80.0f, 80.0f
+	};
 
 	parts[LEFT_LOWER_ARM] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-10.0f, 70.0f,
-			0.0f, 130.0f,
-			0.0f, 0.0f};
+		-10.0f, 70.0f,
+		0.0f, 130.0f,
+		0.0f, 0.0f
+	};
 
 	parts[LEFT_HAND] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-100.0f, 10.0f,
-			-30.0f, 30.0f,
-			-50.0f, 80.0f};
+		-100.0f, 10.0f,
+		-30.0f, 30.0f,
+		-50.0f, 80.0f
+	};
 
 	// RIGHT ARM
 	parts[RIGHT_UPPER_ARM] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-60.0f, 60.0f,
-			-30.0f, 100.0f,
-			-80.0f, 80.0f};
+		-60.0f, 60.0f,
+		-30.0f, 100.0f,
+		-80.0f, 80.0f
+	};
 
 	parts[RIGHT_LOWER_ARM] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-10.0f, 70.0f,
-			0.0f, 130.0f,
-			0.0f, 0.0f};
+		-10.0f, 70.0f,
+		0.0f, 130.0f,
+		0.0f, 0.0f
+	};
 
 	parts[RIGHT_HAND] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-10.0f, 100.0f,
-			-30.0f, 30.0f,
-			-80.0f, 50.0f};
+		-10.0f, 100.0f,
+		-30.0f, 30.0f,
+		-80.0f, 50.0f
+	};
 
 	// LEFT LEG
 	parts[LEFT_UPPER_LEG] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-50.0f, 50.0f,
-			-10.0f, 20.0f,
-			-10.0f, 50.0f};
+		-50.0f, 50.0f,
+		-10.0f, 20.0f,
+		-10.0f, 50.0f
+	};
 
 	parts[LEFT_LOWER_LEG] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 120.0f,
-			0.0f, 0.0f,
-			0.0f, 0.0f};
+		0.0f, 120.0f,
+		0.0f, 0.0f,
+		0.0f, 0.0f
+	};
 
 	parts[LEFT_FOOT] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-5.0f, 50.0f,
-			0.0f, 0.0f,
-			-30.0f, 5.0f};
+		-5.0f, 50.0f,
+		0.0f, 0.0f,
+		-30.0f, 5.0f
+	};
 
 	// RIGHT LEG
 	parts[RIGHT_UPPER_LEG] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-50.0f, 50.0f,
-			-10.0f, 20.0f,
-			-10.0f, 50.0f};
+		-50.0f, 50.0f,
+		-10.0f, 20.0f,
+		-10.0f, 50.0f
+	};
 
 	parts[RIGHT_LOWER_LEG] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 120.0f,
-			0.0f, 0.0f,
-			0.0f, 0.0f};
+		0.0f, 120.0f,
+		0.0f, 0.0f,
+		0.0f, 0.0f };
 
 	parts[RIGHT_FOOT] =
-		{
-			0.0f, 0.0f, 0.0f,
+	{
+		0.0f, 0.0f, 0.0f,
 
-			0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f,
 
-			-5.0f, 50.0f,
-			0.0f, 0.0f,
-			-30.0f, 5.0f};
+		-5.0f, 50.0f,
+		0.0f, 0.0f,
+		-30.0f, 5.0f
+	};
 }
 
-GLuint LoadTexture(const char *filePath)
+GLuint LoadTexture(const char* filePath)
 {
 	BITMAP bmp;
 	HBITMAP hBMP;
@@ -2421,7 +2435,7 @@ void DrawPyramid(float width, float height)
 	glEnd();
 }
 
-void DrawDisk(GLUquadricObj *disk, float innerRadius, float outerRadius, int slices, int loops)
+void DrawDisk(GLUquadricObj* disk, float innerRadius, float outerRadius, int slices, int loops)
 {
 	glPushMatrix();
 	glRotatef(-GLU_ANGLEY_OFFSET, 1.0f, 0.0f, 0.0f);
@@ -2429,12 +2443,12 @@ void DrawDisk(GLUquadricObj *disk, float innerRadius, float outerRadius, int sli
 	glPopMatrix();
 }
 
-void DrawFlatCircle(GLUquadricObj *disk, float radius, int slices, int loops)
+void DrawFlatCircle(GLUquadricObj* disk, float radius, int slices, int loops)
 {
 	DrawDisk(disk, 0.0f, radius, slices, loops);
 }
 
-void DrawCylinder(GLUquadricObj *cylinder, float baseRadius, float topRadius, float height, float slices, float stacks)
+void DrawCylinder(GLUquadricObj* cylinder, float baseRadius, float topRadius, float height, float slices, float stacks)
 {
 	float offsetY = height / 2.0f;
 
@@ -2445,12 +2459,12 @@ void DrawCylinder(GLUquadricObj *cylinder, float baseRadius, float topRadius, fl
 	glPopMatrix();
 }
 
-void DrawSemiCylinder(GLUquadricObj *cylinder, float baseRadius, float topRadius, float height, float slices, float stacks)
+void DrawSemiCylinder(GLUquadricObj* cylinder, float baseRadius, float topRadius, float height, float slices, float stacks)
 {
 	float offsetY = height / 2.0f;
 
 	// Define clipping plane (cuts along X axis to keeps one half)
-	GLdouble plane[] = {1.0, 0.0, 0.0, 0.0};
+	GLdouble plane[] = { 1.0, 0.0, 0.0, 0.0 };
 	// Equation: x >= 0 side is kept
 
 	// Enable clipping
@@ -2463,7 +2477,7 @@ void DrawSemiCylinder(GLUquadricObj *cylinder, float baseRadius, float topRadius
 	glDisable(GL_CLIP_PLANE0);
 }
 
-void DrawEnclosedCylinder(GLUquadricObj *cylinder, float baseRadius, float topRadius, float height, float slices, float stacks)
+void DrawEnclosedCylinder(GLUquadricObj* cylinder, float baseRadius, float topRadius, float height, float slices, float stacks)
 {
 	glPushMatrix();
 	DrawCylinder(cylinder, baseRadius, topRadius, height, slices, stacks);
@@ -2490,7 +2504,7 @@ void DrawEnclosedCylinder(GLUquadricObj *cylinder, float baseRadius, float topRa
 	glPopMatrix();
 }
 
-void DrawPartialEnclosedCylinder(GLUquadricObj *cylinder, float baseRadius, float topRadius, float height, float slices, float stacks, boolean isTopClosed, boolean isBottomClosed)
+void DrawPartialEnclosedCylinder(GLUquadricObj* cylinder, float baseRadius, float topRadius, float height, float slices, float stacks, boolean isTopClosed, boolean isBottomClosed)
 {
 	glPushMatrix();
 	DrawCylinder(cylinder, baseRadius, topRadius, height, slices, stacks);
@@ -2523,12 +2537,12 @@ void DrawPartialEnclosedCylinder(GLUquadricObj *cylinder, float baseRadius, floa
 	glPopMatrix();
 }
 
-void DrawEnclosedSemiCylinder(GLUquadricObj *cylinder, float baseRadius, float topRadius, float height, float slices, float stacks)
+void DrawEnclosedSemiCylinder(GLUquadricObj* cylinder, float baseRadius, float topRadius, float height, float slices, float stacks)
 {
 	float offsetY = height / 2.0f;
 
 	// Define clipping plane (cuts along X axis to keeps one half)
-	GLdouble plane[] = {1.0, 0.0, 0.0, 0.0};
+	GLdouble plane[] = { 1.0, 0.0, 0.0, 0.0 };
 	// Equation: x >= 0 side is kept
 
 	// Enable clipping
@@ -2541,12 +2555,12 @@ void DrawEnclosedSemiCylinder(GLUquadricObj *cylinder, float baseRadius, float t
 	glDisable(GL_CLIP_PLANE0);
 }
 
-void DrawPartialEnclosedSemiCylinder(GLUquadricObj *cylinder, float baseRadius, float topRadius, float height, float slices, float stacks, boolean isTopClosed, boolean isBottomClosed)
+void DrawPartialEnclosedSemiCylinder(GLUquadricObj* cylinder, float baseRadius, float topRadius, float height, float slices, float stacks, boolean isTopClosed, boolean isBottomClosed)
 {
 	float offsetY = height / 2.0f;
 
 	// Define clipping plane (cuts along X axis to keeps one half)
-	GLdouble plane[] = {1.0, 0.0, 0.0, 0.0};
+	GLdouble plane[] = { 1.0, 0.0, 0.0, 0.0 };
 	// Equation: x >= 0 side is kept
 
 	// Enable clipping
@@ -2559,7 +2573,7 @@ void DrawPartialEnclosedSemiCylinder(GLUquadricObj *cylinder, float baseRadius, 
 	glDisable(GL_CLIP_PLANE0);
 }
 
-void DrawEnclosedCylinderWithThickness(GLUquadricObj *cylinder, float baseRadius, float topRadius, float height, float thickness, float slices, float stacks, float loops)
+void DrawEnclosedCylinderWithThickness(GLUquadricObj* cylinder, float baseRadius, float topRadius, float height, float thickness, float slices, float stacks, float loops)
 {
 	glPushMatrix();
 	DrawCylinder(cylinder, baseRadius, topRadius, height, slices, stacks);
@@ -2589,12 +2603,12 @@ void DrawEnclosedCylinderWithThickness(GLUquadricObj *cylinder, float baseRadius
 	glPopMatrix();
 }
 
-void DrawEnclosedSemiCylinderWithThickness(GLUquadricObj *cylinder, float baseRadius, float topRadius, float height, float thickness, float slices, float stacks, float loops)
+void DrawEnclosedSemiCylinderWithThickness(GLUquadricObj* cylinder, float baseRadius, float topRadius, float height, float thickness, float slices, float stacks, float loops)
 {
 	float offsetY = height / 2.0f;
 
 	// Define clipping plane (cuts along X axis to keeps one half)
-	GLdouble plane[] = {1.0, 0.0, 0.0, 0.0};
+	GLdouble plane[] = { 1.0, 0.0, 0.0, 0.0 };
 	// Equation: x >= 0 side is kept
 
 	// Enable clipping
@@ -2607,7 +2621,7 @@ void DrawEnclosedSemiCylinderWithThickness(GLUquadricObj *cylinder, float baseRa
 	glDisable(GL_CLIP_PLANE0);
 }
 
-void DrawBentCylinder(GLUquadricObj *cylinder, float tubeRadius, float edgeRadius, float arcRadius, float bendAngle, int segments, float slices, float stacks)
+void DrawBentCylinder(GLUquadricObj* cylinder, float tubeRadius, float edgeRadius, float arcRadius, float bendAngle, int segments, float slices, float stacks)
 {
 	float step = bendAngle / segments;
 
@@ -2650,7 +2664,7 @@ void DrawBentCylinder(GLUquadricObj *cylinder, float tubeRadius, float edgeRadiu
 	glPopMatrix();
 }
 
-void DrawEnclosedBentCylinder(GLUquadricObj *cylinder, float tubeRadius, float edgeRadius, float arcRadius, float bendAngle, int segments, float slices, float stacks)
+void DrawEnclosedBentCylinder(GLUquadricObj* cylinder, float tubeRadius, float edgeRadius, float arcRadius, float bendAngle, int segments, float slices, float stacks)
 {
 	float step = bendAngle / segments;
 	float segmentLength = arcRadius * DegreeToRadian(step);
@@ -2709,17 +2723,17 @@ void DrawEnclosedBentCylinder(GLUquadricObj *cylinder, float tubeRadius, float e
 	glPopMatrix();
 }
 
-void DrawSphere(GLUquadricObj *quadric, float radius, int slices, int stacks)
+void DrawSphere(GLUquadricObj* quadric, float radius, int slices, int stacks)
 {
 	glPushMatrix();
 	gluSphere(quadric, radius, slices, stacks);
 	glPopMatrix();
 }
 
-void DrawSemiSphere(GLUquadricObj *quadric, float radius, int slices, int stacks)
+void DrawSemiSphere(GLUquadricObj* quadric, float radius, int slices, int stacks)
 {
 	// Define clipping plane (cuts along X axis to keeps one half)
-	GLdouble plane[] = {1.0, 0.0, 0.0, 0.0};
+	GLdouble plane[] = { 1.0, 0.0, 0.0, 0.0 };
 	// Equation: x >= 0 side is kept
 	// Enable clipping
 	glEnable(GL_CLIP_PLANE0);
@@ -3219,7 +3233,7 @@ void SetupLighting()
 		glLightfv(GL_LIGHT0, GL_DIFFUSE, lightsDiffuse[lightIndex]);
 		glLightfv(GL_LIGHT0, GL_SPECULAR, lightsSpecular[lightIndex]);
 
-		GLfloat lightPosition[] = {lightX, lightY, lightZ, 1.0f};
+		GLfloat lightPosition[] = { lightX, lightY, lightZ, 1.0f };
 		glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 	}
 	else
@@ -3248,10 +3262,10 @@ void DrawLightIndicator()
 
 		// Color lightVisualizerColor = { 1.0f, 1.0f, 0.0f };
 		const Color lightVisualizerColor =
-			{
-				lightsColor[lightIndex]->r,
-				lightsColor[lightIndex]->g,
-				lightsColor[lightIndex]->b};
+		{
+			lightsColor[lightIndex]->r,
+			lightsColor[lightIndex]->g,
+			lightsColor[lightIndex]->b };
 
 		glPushMatrix();
 		glTranslatef(lightX, lightY, lightZ);
@@ -4234,7 +4248,7 @@ void DrawArm(float side)
 
 	// Upper Arm
 	glPushMatrix();
-	PartRotation &upperArm =
+	PartRotation& upperArm =
 		(side < 0) ? parts[LEFT_UPPER_ARM] : parts[RIGHT_UPPER_ARM];
 	glRotatef(upperArm.angleX, 1, 0, 0);
 	glRotatef(upperArm.angleY, 0, 1, 0);
@@ -4244,7 +4258,7 @@ void DrawArm(float side)
 	// Lower Arm
 	glPushMatrix();
 	glTranslatef(-(upperArmLength / 2 + lowerArmLength / 2), 0.0f, 0.0f);
-	PartRotation &lowerArm =
+	PartRotation& lowerArm =
 		(side < 0) ? parts[LEFT_LOWER_ARM] : parts[RIGHT_LOWER_ARM];
 	glRotatef(lowerArm.angleX, 1, 0, 0);
 	glRotatef(lowerArm.angleY, 0, 1, 0);
@@ -4254,7 +4268,7 @@ void DrawArm(float side)
 	// Hand
 	glPushMatrix();
 	glTranslatef(-lowerArmLength, 0.0f, 0.0f);
-	PartRotation &hand =
+	PartRotation& hand =
 		(side < 0) ? parts[LEFT_HAND] : parts[RIGHT_HAND];
 	glRotatef(hand.angleX, 1, 0, 0);
 	glRotatef(hand.angleY, 0, 1, 0);
@@ -4587,7 +4601,7 @@ void DrawLeg(float side, float torsoRadius)
 	// Upper Leg
 	glPushMatrix();
 
-	PartRotation &upperLeg =
+	PartRotation& upperLeg =
 		(side < 0) ? parts[LEFT_UPPER_LEG] : parts[RIGHT_UPPER_LEG];
 	glRotatef(upperLeg.angleX, 1, 0, 0);
 	glRotatef(upperLeg.angleY, 0, 1, 0);
@@ -4635,7 +4649,7 @@ void DrawLeg(float side, float torsoRadius)
 	// Lower Leg
 	glPushMatrix();
 	glTranslatef(0.0f, -(upperLegLength / 2 + lowerLegLength / 2), 0.0f);
-	PartRotation &lowerLeg =
+	PartRotation& lowerLeg =
 		(side < 0) ? parts[LEFT_LOWER_LEG] : parts[RIGHT_LOWER_LEG];
 	glRotatef(lowerLeg.angleX, 1, 0, 0);
 	glRotatef(lowerLeg.angleY, 0, 1, 0);
@@ -4684,7 +4698,7 @@ void DrawLeg(float side, float torsoRadius)
 	// Foot
 	glPushMatrix();
 	glTranslatef(0.0f, -lowerLegLength, 0.0f);
-	PartRotation &foot =
+	PartRotation& foot =
 		(side < 0) ? parts[LEFT_FOOT] : parts[RIGHT_FOOT];
 	glRotatef(foot.angleX, 1, 0, 0);
 	glRotatef(foot.angleY, 0, 1, 0);
@@ -5144,7 +5158,7 @@ void DrawWaterElementHeadJewel(float headBaseRadius)
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, goldTexture);
-	ApplyTint({0.88f, 0.76f, 0.38f});
+	ApplyTint({ 0.88f, 0.76f, 0.38f });
 
 	glPushMatrix();
 	glTranslatef(0.0f, headBaseRadius * 0.86f, headBaseRadius * 1.02f);
@@ -5159,7 +5173,7 @@ void DrawWaterElementHeadJewel(float headBaseRadius)
 	glPopMatrix();
 
 	glBindTexture(GL_TEXTURE_2D, skyTexture);
-	ApplyTint({0.42f, 0.78f, 1.0f});
+	ApplyTint({ 0.42f, 0.78f, 1.0f });
 
 	glPushMatrix();
 	glTranslatef(0.0f, headBaseRadius * 0.68f, headBaseRadius * 1.03f);
@@ -5181,7 +5195,7 @@ void DrawWaterElementFrontRobe(float torsoRadius, float torsoHeight)
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, skyTexture);
-	ApplyTint({0.22f, 0.34f, 0.46f});
+	ApplyTint({ 0.22f, 0.34f, 0.46f });
 
 	glPushMatrix();
 	glTranslatef(0.0f, -torsoHeight * 0.10f, torsoRadius * 0.96f);
@@ -5211,7 +5225,7 @@ void DrawWaterElementGoldTrim(float torsoRadius, float torsoHeight)
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, goldTexture);
-	ApplyTint({0.88f, 0.76f, 0.36f});
+	ApplyTint({ 0.88f, 0.76f, 0.36f });
 
 	glPushMatrix();
 	glTranslatef(0.0f, torsoHeight * 0.54f, torsoRadius * 1.28f);
@@ -5243,7 +5257,7 @@ void DrawWaterElementGem(float torsoRadius, float torsoHeight)
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, skyTexture);
-	ApplyTint({0.48f, 0.82f, 1.0f});
+	ApplyTint({ 0.48f, 0.82f, 1.0f });
 
 	glPushMatrix();
 	glTranslatef(0.0f, torsoHeight * 0.18f, torsoRadius * 1.42f);
@@ -6056,7 +6070,7 @@ void DrawCharacter()
 
 	// Upper Torso
 	glPushMatrix();
-	PartRotation &upperTorso = parts[UPPER_TORSO];
+	PartRotation& upperTorso = parts[UPPER_TORSO];
 	glRotatef(upperTorso.angleX, 1.0f, 0.0f, 0.0f);
 	glRotatef(upperTorso.angleY, 0.0f, 1.0f, 0.0f);
 	glRotatef(upperTorso.angleZ, 0.0f, 0.0f, 1.0f);
@@ -6102,7 +6116,7 @@ void DrawCharacter()
 	float headBaseHeight = isChibi ? 0.065f : 0.05f;
 	glPushMatrix();
 	glTranslatef(0.0f, neckHeight + headBaseHeight * (isChibi ? 0.95f : 0.8f), 0.0f);
-	PartRotation &head = parts[HEAD];
+	PartRotation& head = parts[HEAD];
 	glRotatef(head.angleX, 1.0f, 0.0f, 0.0f);
 	glRotatef(head.angleY, 0.0f, 1.0f, 0.0f);
 	glRotatef(head.angleZ, 0.0f, 0.0f, 1.0f);
@@ -6186,7 +6200,7 @@ void DrawCharacter()
 	// Lower Torso
 	glPushMatrix();
 	glTranslatef(0.0f, -torsoHeight, 0.0f);
-	PartRotation &lowerTorso = parts[LOWER_TORSO];
+	PartRotation& lowerTorso = parts[LOWER_TORSO];
 	glRotatef(lowerTorso.angleX, 1.0f, 0.0f, 0.0f);
 	glRotatef(lowerTorso.angleY, 0.0f, 1.0f, 0.0f);
 	glRotatef(lowerTorso.angleZ, 0.0f, 0.0f, 1.0f);
@@ -6354,7 +6368,7 @@ void DrawCharacter()
 // ENVIRONMENT SETUP
 // ------------------
 
-void DrawSky(GLUquadricObj *quadric, float radius, int slices, int stacks)
+void DrawSky(GLUquadricObj* quadric, float radius, int slices, int stacks)
 {
 	glPushMatrix();
 
@@ -6489,8 +6503,8 @@ int WINAPI WinMain(
 	//	800x800 = width x height
 
 	HWND hWnd = CreateWindow(CLASS_TITLE, WINDOW_TITLE, WS_OVERLAPPEDWINDOW,
-							 CW_USEDEFAULT, CW_USEDEFAULT, 800, 800,
-							 NULL, NULL, wc.hInstance, NULL);
+		CW_USEDEFAULT, CW_USEDEFAULT, 800, 800,
+		NULL, NULL, wc.hInstance, NULL);
 
 	//--------------------------------
 	//	Initialize window for OpenGL
