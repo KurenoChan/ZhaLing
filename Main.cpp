@@ -102,7 +102,7 @@ struct PartRotation
 // Weapon States
 // ===========
 int currentWeapon = 0; // 0 = None, 1 = Spear, 2 = Sword (Add more later)
-const int TOTAL_WEAPONS = 4; // Update this number as you add more weapons
+const int TOTAL_WEAPONS = 6; // Update this number as you add more weapons
 float wheelRotationAngle = 0.0f; // Tracks the current spin position
 float wheelRotationSpeed = 0.0f; // Tracks how fast it is spinning
 int currentBladeIndex = 0;
@@ -111,8 +111,8 @@ const int TOTAL_BLADE_TEXTURES = 2; // 0 = Normal Blade, 1 = Red Blade
 // =========================
 // Weapon ANIMATION VARIABLES
 // =========================
-int currentWeaponAnim = 0;
-const int TOTAL_Weapon_ANIMS = 1; // We will just have 1 (Spear Thrust) for now
+int currentAnimType = 0;
+const int TOTAL_ANIMS = 4; // We will just have 1 (Spear Thrust) for now
 bool isPlaying = false;    // Tracks if the animation is playing or paused
 float animFrame = 0.0f;    // Tracks the current frame of the animation
 bool isLooping = true;     // Tracks if the animation should loop
@@ -340,159 +340,830 @@ float Clamp(float v, float minV, float maxV)
 	return max(minV, min(maxV, v));
 }
 // -------------------------------------------------------
+
 //---------
 //Animation
 //---------
-void UpdateAnimation() {
-	// Only run this if we are in Animation Mode and it is playing
+
+void WalkAnimation() {
+	if (!isPlaying || currentSceneMode != ANIMATION) return;
+
+	isLooping = true; // Force walk cycles to loop!
+	animFrame += (1.0f * animSpeed);
+
+	// We split the animation into two parts:
+	float windUpFrames = 30.0f; // Takes 30 frames to transition from 0.0f to the Walk Pose
+	float walkFrames = 60.0f;   // Takes 60 frames to do one full walk cycle
+	float maxFrames = windUpFrames + walkFrames; // Total = 90.0f
+
+	if (animFrame > maxFrames) {
+		// MAGIC TRICK: Instead of resetting to 0.0f, we reset to the start of the WALK loop!
+		// This skips the wind-up so the character keeps walking smoothly.
+		animFrame = windUpFrames;
+	}
+
+	// ==========================================
+	// 1. DECLARE ALL VARIABLES (Set to 0.0f)
+	// ==========================================
+	float headX = 0.0f, headY = 0.0f, headZ = 0.0f;
+	float uTorsoX = 0.0f, uTorsoY = 0.0f, uTorsoZ = 0.0f;
+	float lTorsoX = 0.0f, lTorsoY = 0.0f, lTorsoZ = 0.0f;
+
+	float lArmX = 0.0f, lArmY = 0.0f, lArmZ = 0.0f;
+	float lLowerArmX = 0.0f, lLowerArmY = 0.0f;
+	float lHandX = 0.0f, lHandY = 0.0f, lHandZ = 0.0f;
+
+	float rArmX = 0.0f, rArmY = 0.0f, rArmZ = 0.0f;
+	float rLowerArmX = 0.0f, rLowerArmY = 0.0f;
+	float rHandX = 0.0f, rHandY = 0.0f, rHandZ = 0.0f;
+
+	float lLegX = 0.0f, lLegY = 0.0f, lLegZ = 0.0f;
+	float lKneeX = 0.0f;
+	float lFootX = 0.0f, lFootZ = 0.0f;
+
+	float rLegX = 0.0f, rLegY = 0.0f, rLegZ = 0.0f;
+	float rKneeX = 0.0f;
+	float rFootX = 0.0f, rFootZ = 0.0f;
+
+	float charX = 0.0f, charY = 0.0f, charZ = 0.0f;
+
+	// ==========================================
+	// 2. WALK PHASES
+	// ==========================================
+
+	// ---------------------------------------------------------
+	// PHASE 1: Wind-up (Transition from Initial Motion to Walk Pose)
+	// ---------------------------------------------------------
+	if (animFrame <= windUpFrames) {
+		float phaseT = animFrame / windUpFrames;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		// Gradually move the arms into your custom Walk Base Pose
+		lArmX = ease * 45.0f; lArmY = ease * 85.0f;
+		lLowerArmX = ease * -85.0f; lLowerArmY = ease * 75.0f;
+		lHandY = ease * 15.0f;
+
+		rArmX = ease * -25.0f; rArmY = ease * 75.0f;
+		rLowerArmX = ease * 65.0f; rLowerArmY = ease * 80.0f;
+		rHandX = ease * 25.0f; rHandY = ease * 10.0f;
+
+		// (Notice we leave legs at 0.0f here so the character starts from a standing position!)
+	}
+	// ---------------------------------------------------------
+	// PHASE 2: The Looping Walk Cycle
+	// ---------------------------------------------------------
+	else {
+		// Create a specific 't' just for the walk cycle (goes from 0.0 to 1.0 during Phase 2)
+		float walkT = (animFrame - windUpFrames) / walkFrames;
+		float cycle = walkT * 2.0f * 3.14159f;
+
+		// 1. Lock in the Base Poses (100% applied)
+		lArmX = 45.0f; lArmY = 85.0f; lArmZ = 0.0f;
+		lLowerArmX = -85.0f; lLowerArmY = 75.0f;
+		lHandX = 0.0f; lHandY = 15.0f; lHandZ = 0.0f;
+
+		rArmX = -25.0f; rArmY = 75.0f; rArmZ = 0.0f;
+		rLowerArmX = 65.0f; rLowerArmY = 80.0f;
+		rHandX = 25.0f; rHandY = 10.0f; rHandZ = 0.0f;
+
+		// 2. Calculate the "Seesaw" swing
+		float armSwing = sin(cycle) * 35.0f;
+		float legSwing = sin(cycle) * 35.0f;
+
+		// 3. Apply the swings to the base poses
+		lArmX += armSwing;
+		rArmX += armSwing; // (Both use += because of the mirrored model axes!)
+
+		lLegX -= legSwing;
+		rLegX += legSwing;
+
+		if (lLegX > 0) lKneeX = lLegX;
+		if (rLegX > 0) rKneeX = rLegX;
+
+		charY = abs(sin(cycle)) * 2.0f;
+	}
+
+	// ==========================================
+	// 3. APPLY VARIABLES TO PARTS
+	// ==========================================
+	parts[HEAD].angleX = headX; parts[HEAD].angleY = headY; parts[HEAD].angleZ = headZ;
+
+	parts[UPPER_TORSO].angleX = uTorsoX; parts[UPPER_TORSO].angleY = uTorsoY; parts[UPPER_TORSO].angleZ = uTorsoZ;
+	parts[LOWER_TORSO].angleX = lTorsoX; parts[LOWER_TORSO].angleY = lTorsoY; parts[LOWER_TORSO].angleZ = lTorsoZ;
+
+	parts[LEFT_UPPER_ARM].angleX = lArmX; parts[LEFT_UPPER_ARM].angleY = lArmY; parts[LEFT_UPPER_ARM].angleZ = lArmZ;
+	parts[LEFT_LOWER_ARM].angleX = lLowerArmX; parts[LEFT_LOWER_ARM].angleY = lLowerArmY;
+	parts[LEFT_HAND].angleX = lHandX; parts[LEFT_HAND].angleY = lHandY; parts[LEFT_HAND].angleZ = lHandZ;
+
+	parts[RIGHT_UPPER_ARM].angleX = rArmX; parts[RIGHT_UPPER_ARM].angleY = rArmY; parts[RIGHT_UPPER_ARM].angleZ = rArmZ;
+	parts[RIGHT_LOWER_ARM].angleX = rLowerArmX; parts[RIGHT_LOWER_ARM].angleY = rLowerArmY;
+	parts[RIGHT_HAND].angleX = rHandX; parts[RIGHT_HAND].angleY = rHandY; parts[RIGHT_HAND].angleZ = rHandZ;
+
+	parts[LEFT_UPPER_LEG].angleX = lLegX; parts[LEFT_UPPER_LEG].angleY = lLegY; parts[LEFT_UPPER_LEG].angleZ = lLegZ;
+	parts[LEFT_LOWER_LEG].angleX = lKneeX;
+	parts[LEFT_FOOT].angleX = lFootX; parts[LEFT_FOOT].angleZ = lFootZ;
+
+	parts[RIGHT_UPPER_LEG].angleX = rLegX; parts[RIGHT_UPPER_LEG].angleY = rLegY; parts[RIGHT_UPPER_LEG].angleZ = rLegZ;
+	parts[RIGHT_LOWER_LEG].angleX = rKneeX;
+	parts[RIGHT_FOOT].angleX = rFootX; parts[RIGHT_FOOT].angleZ = rFootZ;
+
+	characterX = charX; characterY = charY; characterZ = charZ;
+}
+void SpearAttack() {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
 
 	animFrame += (1.0f * animSpeed);
 	float maxFrames = 90.0f;
 
-	// Handle Looping logic
 	if (animFrame > maxFrames) {
-		if (isLooping) {
-			animFrame = 0.0f; // Restart
-		}
+		if (isLooping) animFrame = 0.0f;
 		else {
-			animFrame = maxFrames; // Lock it at the last frame
-			isPlaying = false;     // Auto-pause at the end
+			animFrame = maxFrames;
+			isPlaying = false;
 		}
 	}
 
 	float t = animFrame / maxFrames;
 
-	// Variables to hold our target angles and positions
-	float torsoY = 0.0f;
-	float rArmX = 0.0f, rArmZ = 0.0f, rLowerArmX = 0.0f, rHandX = 0.0f;
+	// ==========================================
+	// 1. DECLARE ALL VARIABLES (Set to 0)
+	// ==========================================
+	float headX = 0.0f, headY = 0.0f, headZ = 0.0f;
+	float uTorsoX = 0.0f, uTorsoY = 0.0f, uTorsoZ = 0.0f;
+	float lTorsoX = 0.0f, lTorsoY = 0.0f, lTorsoZ = 0.0f;
 
-	// NEW: Variables for the Left Arm to hold the spear!
-	float lArmX = 0.0f, lArmZ = 0.0f, lLowerArmX = 0.0f;
+	float lArmX = 0.0f, lArmY = 0.0f, lArmZ = 0.0f;
+	float lLowerArmX = 0.0f, lLowerArmY = 0.0f;
+	float lHandX = 0.0f, lHandY = 0.0f, lHandZ = 0.0f;
 
-	float lLegX = 0.0f, rLegX = 0.0f, lKneeX = 0.0f, rKneeX = 0.0f;
-	float charZ = 0.0f, charY = 0.0f;
+	float rArmX = 0.0f, rArmY = 0.0f, rArmZ = 0.0f;
+	float rLowerArmX = 0.0f, rLowerArmY = 0.0f;
+	float rHandX = 0.0f, rHandY = 0.0f, rHandZ = 0.0f;
 
-	if (currentWeaponAnim == 0) { // Spear Thrust Animation
+	float lLegX = 0.0f, lLegY = 0.0f, lLegZ = 0.0f;
+	float lKneeX = 0.0f;
+	float lFootX = 0.0f, lFootZ = 0.0f;
 
-		// Phase 1: Wind-up (0% to 40%) - Two-handed pose!
+	float rLegX = 0.0f, rLegY = 0.0f, rLegZ = 0.0f;
+	float rKneeX = 0.0f;
+	float rFootX = 0.0f, rFootZ = 0.0f;
+
+	float charX = 0.0f, charY = 0.0f, charZ = 0.0f;
+
+	// ==========================================
+	// 2. ANIMATION PHASES
+	// ==========================================
+	if (currentAnimType == 0) {
+
+		// ---------------------------------------------------------
+		// PHASE 1: Wind-up (0% to 40%) 
+		// Formula: ease * TARGET_1
+		// ---------------------------------------------------------
 		if (t <= 0.4f) {
 			float phaseT = t / 0.4f;
 			float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
 
-			torsoY = ease * -45.0f;
+			headX = ease * 0.0f; 
+			headY = ease * -20.0f; 
+			headZ = ease * 0.0f;
+			uTorsoX = ease * 0.0f; 
+			uTorsoY = ease * 15.0f; 
+			uTorsoZ = ease * 0.0f;
+			lTorsoX = ease * 0.0f; 
+			lTorsoY = ease * 15.0f; 
+			lTorsoZ = ease * 0.0f;
 
-			// Right arm pulls back to the hip (matches your image)
-			rArmX = ease * 30.0f;
-			rArmZ = ease * 20.0f;
-			rLowerArmX = ease * -100.0f;
-			rHandX = ease * -30.0f;
+			lArmX = ease * -60.0f; lArmY = ease * -30.0f; lArmZ = ease * 0.0f;
+			lLowerArmX = ease * 70.0f; lLowerArmY = ease * 130.0f;
+			lHandX = ease * -15.0f; lHandY = ease * 30.0f; lHandZ = ease * 0.0f;
 
-			// Left arm raises up and bends to hold the front of the spear
-			lArmX = ease * -60.0f;
-			lArmZ = ease * -20.0f;
-			lLowerArmX = ease * -70.0f;
+			rArmX = ease * 35.0f; rArmY = ease * -30.0f; rArmZ = ease * 0.0f;
+			rLowerArmX = ease * -5.0f; rLowerArmY = ease * 0.0f;
+			rHandX = ease * 0.0f; rHandY = ease * 30.0f; rHandZ = ease * 0.0f;
 
-			lLegX = ease * -20.0f;
-			lKneeX = ease * 20.0f;
-			rLegX = ease * 20.0f;
-			rKneeX = ease * 20.0f;
+			lLegX = ease * -50.0f; lLegY = ease * 10.0f; lLegZ = ease * 0.0f;
+			lKneeX = ease * 40.0f;
+			rLegX = ease * 0.0f; rLegY = ease * 20.0f; rLegZ = ease * 0.0f;
+			rKneeX = ease * 50.0f;
 
-			charZ = ease * -0.05f;
-			charY = ease * -0.05f;
+			charX = ease * 0.0f; charY = ease * 0.0f; charZ = ease * 0.0f;
 		}
-		// Phase 2: The Thrust & Lunge! (40% to 60%) - Explode forward
+
+		// ---------------------------------------------------------
+		// PHASE 2: Thrust (40% to 60%)
+		// Formula: START + (ease * (TARGET - START))
+		// ---------------------------------------------------------
 		else if (t <= 0.6f) {
 			float phaseT = (t - 0.4f) / 0.2f;
 			float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
 
-			torsoY = -45.0f + (ease * 75.0f);
+			// HEAD
+			headX = 0.0f + (ease * (0.0f - 0.0f));
+			headY = -20.0f + (ease * (25.0f - (-20.0f)));
+			headZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			// Right hand pushes the back of the spear forward
-			rArmX = 30.0f + (ease * -120.0f);
-			rArmZ = 20.0f + (ease * -20.0f);
-			rLowerArmX = -100.0f + (ease * 90.0f);
-			rHandX = -30.0f + (ease * -60.0f);
+			// UPPER TORSO
+			uTorsoX = 0.0f + (ease * (0.0f - 0.0f));
+			uTorsoY = 15.0f + (ease * (-25.0f - 15.0f));
+			uTorsoZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			// Left hand guides the front of the spear
-			lArmX = -60.0f + (ease * -30.0f);
-			lArmZ = -20.0f + (ease * 20.0f);
-			lLowerArmX = -70.0f + (ease * 50.0f);
+			// LOWER TORSO
+			lTorsoX = 0.0f + (ease * (0.0f - 0.0f));
+			lTorsoY = 15.0f + (ease * (-15.0f - 15.0f));
+			lTorsoZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			lLegX = -20.0f + (ease * -30.0f);
-			lKneeX = 20.0f + (ease * 30.0f);
-			rLegX = 20.0f + (ease * 30.0f);
-			rKneeX = 20.0f + (ease * -20.0f);
+			// LEFT ARM (Updated with your new targets!)
+			lArmX = -60.0f + (ease * (-55.0f - (-60.0f)));
+			lArmY = -30.0f + (ease * (-25.0f - (-30.0f)));
+			lArmZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			charZ = -0.05f + (ease * 0.35f);
-			charY = -0.05f + (ease * -0.05f);
+			lLowerArmX = 70.0f + (ease * (35.0f - 70.0f));     // Target is 35
+			lLowerArmY = 130.0f + (ease * (115.0f - 130.0f));  // Target is 115
+
+			lHandX = -15.0f + (ease * (-100.0f - (-15.0f)));   // Target is -100
+			lHandY = 30.0f + (ease * (0.0f - 30.0f));          // Target is 0
+			lHandZ = 0.0f + (ease * (0.0f - 0.0f));
+
+			// RIGHT ARM
+			rArmX = 35.0f + (ease * (0.0f - 35.0f));
+			rArmY = -30.0f + (ease * (65.0f - (-30.0f)));
+			rArmZ = 0.0f + (ease * (0.0f - 0.0f));
+			rLowerArmX = -5.0f + (ease * (0.0f - (-5.0f)));
+			rLowerArmY = 0.0f + (ease * (5.0f - 0.0f));
+			rHandX = 0.0f + (ease * (0.0f - 0.0f));
+			rHandY = 30.0f + (ease * (-90.0f - 30.0f));
+			rHandZ = 0.0f + (ease * (0.0f - 0.0f));
+
+			// LEFT LEG
+			lLegX = -50.0f + (ease * (35.0f - (-50.0f)));
+			lLegY = 10.0f + (ease * (10.0f - 10.0f));
+			lLegZ = 0.0f + (ease * (0.0f - 0.0f));
+			lKneeX = 40.0f + (ease * (0.0f - 40.0f));
+
+			// RIGHT LEG
+			rLegX = 0.0f + (ease * (-45.0f - 0.0f));
+			rLegY = 20.0f + (ease * (20.0f - 20.0f));
+			rLegZ = 0.0f + (ease * (0.0f - 0.0f));
+			rKneeX = 50.0f + (ease * (25.0f - 50.0f));
+
+			charX = 0.0f; charY = 0.0f; charZ = 0.0f;
 		}
-		// Phase 3: Hold the pose (60% to 80%) 
+
+		// ---------------------------------------------------------
+		// PHASE 3: Hold Pose (60% to 80%)
+		// ---------------------------------------------------------
 		else if (t <= 0.8f) {
-			torsoY = 30.0f;
+			headX = 0.0f; headY = 25.0f; headZ = 0.0f;
+			uTorsoX = 0.0f; uTorsoY = -25.0f; uTorsoZ = 0.0f;
+			lTorsoX = 0.0f; lTorsoY = -15.0f; lTorsoZ = 0.0f;
 
-			rArmX = -90.0f;
-			rArmZ = 0.0f;
-			rLowerArmX = -10.0f;
-			rHandX = -90.0f;
+			// Left arm holds your new poses!
+			lArmX = -55.0f; lArmY = -25.0f; lArmZ = 0.0f;
+			lLowerArmX = 35.0f; lLowerArmY = 115.0f;
+			lHandX = -100.0f; lHandY = 0.0f; lHandZ = 0.0f;
 
-			lArmX = -90.0f;
-			lArmZ = 0.0f;
-			lLowerArmX = -20.0f;
+			rArmX = 0.0f; rArmY = 65.0f; rArmZ = 0.0f;
+			rLowerArmX = 0.0f; rLowerArmY = 5.0f;
+			rHandX = 0.0f; rHandY = -90.0f; rHandZ = 0.0f;
 
-			lLegX = -50.0f;
-			lKneeX = 50.0f;
-			rLegX = 50.0f;
-			rKneeX = 0.0f;
+			lLegX = 35.0f; lLegY = 10.0f; lLegZ = 0.0f;
+			lKneeX = 0.0f;
 
-			charZ = 0.30f;
-			charY = -0.1f;
+			rLegX = -45.0f; rLegY = 20.0f; rLegZ = 0.0f;
+			rKneeX = 25.0f;
+
+			charX = 0.0f; charY = 0.0f; charZ = 0.0f;
 		}
-		// Phase 4: Recovery (80% to 100%) - Step back to center
+
+		// ---------------------------------------------------------
+		// PHASE 4: Recovery (80% to 100%)
+		// ---------------------------------------------------------
 		else {
 			float phaseT = (t - 0.8f) / 0.2f;
 			float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
 
-			torsoY = 30.0f - (ease * 30.0f);
+			headX = 0.0f - (ease * 0.0f);
+			headY = 25.0f - (ease * 25.0f);
+			headZ = 0.0f - (ease * 0.0f);
 
-			rArmX = -90.0f - (ease * -90.0f);
-			rArmZ = 0.0f;
-			rLowerArmX = -10.0f - (ease * -10.0f);
-			rHandX = -90.0f - (ease * -90.0f);
+			uTorsoX = 0.0f - (ease * 0.0f);
+			uTorsoY = -25.0f - (ease * -25.0f);
+			uTorsoZ = 0.0f - (ease * 0.0f);
 
-			lArmX = -90.0f - (ease * -90.0f);
-			lArmZ = 0.0f;
-			lLowerArmX = -20.0f - (ease * -20.0f);
+			lTorsoX = 0.0f - (ease * 0.0f);
+			lTorsoY = -15.0f - (ease * -15.0f);
+			lTorsoZ = 0.0f - (ease * 0.0f);
 
-			lLegX = -50.0f - (ease * -50.0f);
-			lKneeX = 50.0f - (ease * 50.0f);
-			rLegX = 50.0f - (ease * 50.0f);
-			rKneeX = 0.0f;
+			// Left arm returns from your new poses!
+			lArmX = -55.0f - (ease * -55.0f);
+			lArmY = -25.0f - (ease * -25.0f);
+			lArmZ = 0.0f - (ease * 0.0f);
+			lLowerArmX = 35.0f - (ease * 35.0f);
+			lLowerArmY = 115.0f - (ease * 115.0f);
+			lHandX = -100.0f - (ease * -100.0f);
+			lHandY = 0.0f - (ease * 0.0f);
+			lHandZ = 0.0f - (ease * 0.0f);
 
-			charZ = 0.30f - (ease * 0.30f);
-			charY = -0.1f - (ease * -0.1f);
+			rArmX = 0.0f - (ease * 0.0f);
+			rArmY = 65.0f - (ease * 65.0f);
+			rArmZ = 0.0f - (ease * 0.0f);
+			rLowerArmX = 0.0f - (ease * 0.0f);
+			rLowerArmY = 5.0f - (ease * 5.0f);
+			rHandX = 0.0f - (ease * 0.0f);
+			rHandY = -90.0f - (ease * -90.0f);
+			rHandZ = 0.0f - (ease * 0.0f);
+
+			lLegX = 35.0f - (ease * 35.0f);
+			lLegY = 10.0f - (ease * 10.0f);
+			lLegZ = 0.0f - (ease * 0.0f);
+			lKneeX = 0.0f - (ease * 0.0f);
+
+			rLegX = -45.0f - (ease * -45.0f);
+			rLegY = 20.0f - (ease * 20.0f);
+			rLegZ = 0.0f - (ease * 0.0f);
+			rKneeX = 25.0f - (ease * 25.0f);
+
+			charX = 0.0f; charY = 0.0f; charZ = 0.0f;
 		}
+	}
 
-		// Apply the calculated angles to the actual character parts!
-		parts[UPPER_TORSO].angleY = torsoY;
+	// ==========================================
+	// 3. APPLY VARIABLES TO PARTS
+	// (This runs for every animation, outside the IF statement)
+	// ==========================================
+	parts[HEAD].angleX = headX; parts[HEAD].angleY = headY; parts[HEAD].angleZ = headZ;
 
-		parts[RIGHT_UPPER_ARM].angleX = rArmX;
-		parts[RIGHT_UPPER_ARM].angleZ = rArmZ;
-		parts[RIGHT_LOWER_ARM].angleX = rLowerArmX;
-		parts[RIGHT_HAND].angleX = rHandX;
+	parts[UPPER_TORSO].angleX = uTorsoX; parts[UPPER_TORSO].angleY = uTorsoY; parts[UPPER_TORSO].angleZ = uTorsoZ;
+	parts[LOWER_TORSO].angleX = lTorsoX; parts[LOWER_TORSO].angleY = lTorsoY; parts[LOWER_TORSO].angleZ = lTorsoZ;
 
-		// Apply the new Left Arm angles!
-		parts[LEFT_UPPER_ARM].angleX = lArmX;
-		parts[LEFT_UPPER_ARM].angleZ = lArmZ;
-		parts[LEFT_LOWER_ARM].angleX = lLowerArmX;
+	parts[LEFT_UPPER_ARM].angleX = lArmX; parts[LEFT_UPPER_ARM].angleY = lArmY; parts[LEFT_UPPER_ARM].angleZ = lArmZ;
+	parts[LEFT_LOWER_ARM].angleX = lLowerArmX; parts[LEFT_LOWER_ARM].angleY = lLowerArmY;
+	parts[LEFT_HAND].angleX = lHandX; parts[LEFT_HAND].angleY = lHandY; parts[LEFT_HAND].angleZ = lHandZ;
 
-		parts[LEFT_UPPER_LEG].angleX = lLegX;
-		parts[LEFT_LOWER_LEG].angleX = lKneeX;
-		parts[RIGHT_UPPER_LEG].angleX = rLegX;
-		parts[RIGHT_LOWER_LEG].angleX = rKneeX;
+	parts[RIGHT_UPPER_ARM].angleX = rArmX; parts[RIGHT_UPPER_ARM].angleY = rArmY; parts[RIGHT_UPPER_ARM].angleZ = rArmZ;
+	parts[RIGHT_LOWER_ARM].angleX = rLowerArmX; parts[RIGHT_LOWER_ARM].angleY = rLowerArmY;
+	parts[RIGHT_HAND].angleX = rHandX; parts[RIGHT_HAND].angleY = rHandY; parts[RIGHT_HAND].angleZ = rHandZ;
 
-		characterZ = charZ;
-		characterY = charY;
+	parts[LEFT_UPPER_LEG].angleX = lLegX; parts[LEFT_UPPER_LEG].angleY = lLegY; parts[LEFT_UPPER_LEG].angleZ = lLegZ;
+	parts[LEFT_LOWER_LEG].angleX = lKneeX;
+	parts[LEFT_FOOT].angleX = lFootX; parts[LEFT_FOOT].angleZ = lFootZ;
+
+	parts[RIGHT_UPPER_LEG].angleX = rLegX; parts[RIGHT_UPPER_LEG].angleY = rLegY; parts[RIGHT_UPPER_LEG].angleZ = rLegZ;
+	parts[RIGHT_LOWER_LEG].angleX = rKneeX;
+	parts[RIGHT_FOOT].angleX = rFootX; parts[RIGHT_FOOT].angleZ = rFootZ;
+
+	characterX = charX;
+	characterY = charY;
+	characterZ = charZ;
+}
+void SlashAnimation() {
+	if (!isPlaying || currentSceneMode != ANIMATION) return;
+
+	animFrame += (1.0f * animSpeed);
+	float maxFrames = 90.0f;
+
+	if (animFrame > maxFrames) {
+		if (isLooping) animFrame = 0.0f;
+		else {
+			animFrame = maxFrames;
+			isPlaying = false;
+		}
+	}
+
+	float t = animFrame / maxFrames;
+
+	// ==========================================
+	// 1. DECLARE ALL VARIABLES (Set to 0)
+	// ==========================================
+	float headX = 0.0f, headY = 0.0f, headZ = 0.0f;
+	float uTorsoX = 0.0f, uTorsoY = 0.0f, uTorsoZ = 0.0f;
+	float lTorsoX = 0.0f, lTorsoY = 0.0f, lTorsoZ = 0.0f;
+
+	float lArmX = 0.0f, lArmY = 0.0f, lArmZ = 0.0f;
+	float lLowerArmX = 0.0f, lLowerArmY = 0.0f;
+	float lHandX = 0.0f, lHandY = 0.0f, lHandZ = 0.0f;
+
+	float rArmX = 0.0f, rArmY = 0.0f, rArmZ = 0.0f;
+	float rLowerArmX = 0.0f, rLowerArmY = 0.0f;
+	float rHandX = 0.0f, rHandY = 0.0f, rHandZ = 0.0f;
+
+	float lLegX = 0.0f, lLegY = 0.0f, lLegZ = 0.0f;
+	float lKneeX = 0.0f;
+	float lFootX = 0.0f, lFootZ = 0.0f;
+
+	float rLegX = 0.0f, rLegY = 0.0f, rLegZ = 0.0f;
+	float rKneeX = 0.0f;
+	float rFootX = 0.0f, rFootZ = 0.0f;
+
+	float charX = 0.0f, charY = 0.0f, charZ = 0.0f;
+
+	// ==========================================
+	// 2. ANIMATION PHASES
+	// ==========================================
+
+	// ---------------------------------------------------------
+	// PHASE 1: Wind-up (0% to 40%) 
+	// (Your exact poses! Raising the heavy sword)
+	// ---------------------------------------------------------
+	if (t <= 0.4f) {
+		float phaseT = t / 0.4f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		headX = ease * 0.0f;
+		headY = ease * -40.0f;
+		headZ = ease * 0.0f;
+
+		uTorsoX = ease * 0.0f;
+		uTorsoY = ease * 40.0f;
+		uTorsoZ = ease * 0.0f;
+
+		lTorsoX = ease * 0.0f;
+		lTorsoY = ease * 25.0f;
+		lTorsoZ = ease * 0.0f;
+
+		lArmX = ease * 50.0f; lArmY = ease * 50.0f; lArmZ = ease * 0.0f;
+		lLowerArmX = ease * -75.0f; lLowerArmY = ease * 85.0f;
+		lHandX = ease * -85.0f; lHandY = ease * 5.0f; lHandZ = ease * 0.0f;
+
+		rArmX = ease * 80.0f; rArmY = ease * 0.0f; rArmZ = ease * 0.0f;
+		rLowerArmX = ease * 0.0f; rLowerArmY = ease * 0.0f;
+		rHandX = ease * 10.0f; rHandY = ease * -45.0f; rHandZ = ease * 0.0f;
+
+		lLegX = ease * -25.0f; lLegY = ease * 20.0f; lLegZ = ease * 0.0f;
+		lKneeX = ease * 20.0f;
+		lFootX = ease * 0.0f; lFootZ = ease * 0.0f;
+
+		rLegX = ease * 10.0f; rLegY = ease * 20.0f; rLegZ = ease * 0.0f;
+		rKneeX = ease * 15.0f;
+		rFootX = ease * -5.0f; rFootZ = ease * 0.0f;
+
+		charX = ease * 0.0f; charY = ease * 0.0f; charZ = ease * 0.0f;
+	}
+
+	// ---------------------------------------------------------
+	// PHASE 2: Heavy Slash Impact (40% to 60%)
+	// (Swinging down in a huge arc across the body!)
+	// ---------------------------------------------------------
+	else if (t <= 0.6f) {
+		float phaseT = (t - 0.4f) / 0.2f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		// Head follows the swing
+		headX = 0.0f + (ease * (10.0f - 0.0f));
+		headY = -40.0f + (ease * (30.0f - (-40.0f)));
+		headZ = 0.0f;
+
+		// Torso violently twists the OTHER way to generate power!
+		uTorsoX = 0.0f + (ease * (15.0f - 0.0f));   // Lean forward slightly
+		uTorsoY = 40.0f + (ease * (-45.0f - 40.0f)); // Twist left
+		uTorsoZ = 0.0f;
+
+		lTorsoX = 0.0f + (ease * (10.0f - 0.0f));
+		lTorsoY = 25.0f + (ease * (-25.0f - 25.0f));
+		lTorsoZ = 0.0f;
+
+		// Left arm drops and gets out of the way
+		lArmX = 50.0f + (ease * (-30.0f - 50.0f));
+		lArmY = 50.0f + (ease * (-20.0f - 50.0f));
+		lArmZ = 0.0f;
+		lLowerArmX = -75.0f + (ease * (-10.0f - (-75.0f)));
+		lLowerArmY = 85.0f + (ease * (0.0f - 85.0f));
+		lHandX = -85.0f + (ease * (0.0f - (-85.0f)));
+		lHandY = 5.0f + (ease * (0.0f - 5.0f));
+		lHandZ = 0.0f;
+
+		// Right arm (The Sword Arm) swings down past the waist!
+		rArmX = 80.0f + (ease * (-55.0f - 80.0f));     // Swing DOWN
+		rArmY = 0.0f + (ease * (45.0f - 0.0f));        // Swing ACROSS the body
+		rArmZ = 0.0f + (ease * (0.0f - 0.0f));
+		rLowerArmX = 0.0f + (ease * (0.0f - 0.0f));    // Keep elbow straight for a wide arc
+		rLowerArmY = 0.0f + (ease * (0.0f - 0.0f));
+		rHandX = 10.0f + (ease * (35.0f - 10.0f));     // Snap the wrist forward for the hit
+		rHandY = -45.0f + (ease * (0.0f - (-45.0f)));  // Untwist wrist
+		rHandZ = 0.0f;
+
+		// Legs brace for the impact (Left leg steps deeper)
+		lLegX = -25.0f + (ease * (-35.0f - (-25.0f)));
+		lLegY = 20.0f + (ease * (0.0f - 20.0f));
+		lLegZ = 0.0f;
+		lKneeX = 20.0f + (ease * (35.0f - 20.0f));
+		lFootX = 0.0f; lFootZ = 0.0f;
+
+		rLegX = 10.0f + (ease * (25.0f - 10.0f));     // Right leg stretches back
+		rLegY = 20.0f + (ease * (0.0f - 20.0f));
+		rLegZ = 0.0f;
+		rKneeX = 15.0f + (ease * (0.0f - 15.0f));     // Right knee straightens
+		rFootX = -5.0f + (ease * (-5.0f - (-5.0f)));
+		rFootZ = 0.0f;
+
+		charX = 0.0f; charY = 0.0f; charZ = 0.0f;
+	}
+
+	// ---------------------------------------------------------
+	// PHASE 3: Hold Pose (60% to 80%)
+	// (Hold the follow-through of the slash)
+	// ---------------------------------------------------------
+	else if (t <= 0.8f) {
+		headX = 10.0f; headY = 30.0f; headZ = 0.0f;
+		uTorsoX = 15.0f; uTorsoY = -45.0f; uTorsoZ = 0.0f;
+		lTorsoX = 10.0f; lTorsoY = -25.0f; lTorsoZ = 0.0f;
+
+		lArmX = -30.0f; lArmY = -20.0f; lArmZ = 0.0f;
+		lLowerArmX = -10.0f; lLowerArmY = 0.0f;
+		lHandX = 0.0f; lHandY = 0.0f; lHandZ = 0.0f;
+
+		rArmX = -55.0f; rArmY = 45.0f; rArmZ = 0.0f;
+		rLowerArmX = 0.0f; rLowerArmY = 0.0f;
+		rHandX = 35.0f; rHandY = 0.0f; rHandZ = 0.0f;
+
+		lLegX = -35.0f; lLegY = 0.0f; lLegZ = 0.0f;
+		lKneeX = 35.0f;
+		lFootX = 0.0f; lFootZ = 0.0f;
+
+		rLegX = 25.0f; rLegY = 0.0f; rLegZ = 0.0f;
+		rKneeX = 0.0f;
+		rFootX = -5.0f; rFootZ = 0.0f;
+
+		charX = 0.0f; charY = 0.0f; charZ = 0.0f;
+	}
+
+	// ---------------------------------------------------------
+	// PHASE 4: Recovery (80% to 100%)
+	// (Pulling the heavy sword back to standing position)
+	// ---------------------------------------------------------
+	else {
+		float phaseT = (t - 0.8f) / 0.2f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		headX = 10.0f - (ease * 10.0f);
+		headY = 30.0f - (ease * 30.0f);
+		headZ = 0.0f - (ease * 0.0f);
+
+		uTorsoX = 15.0f - (ease * 15.0f);
+		uTorsoY = -45.0f - (ease * -45.0f);
+		uTorsoZ = 0.0f - (ease * 0.0f);
+
+		lTorsoX = 10.0f - (ease * 10.0f);
+		lTorsoY = -25.0f - (ease * -25.0f);
+		lTorsoZ = 0.0f - (ease * 0.0f);
+
+		lArmX = -30.0f - (ease * -30.0f);
+		lArmY = -20.0f - (ease * -20.0f);
+		lArmZ = 0.0f - (ease * 0.0f);
+		lLowerArmX = -10.0f - (ease * -10.0f);
+		lLowerArmY = 0.0f - (ease * 0.0f);
+		lHandX = 0.0f - (ease * 0.0f);
+		lHandY = 0.0f - (ease * 0.0f);
+		lHandZ = 0.0f - (ease * 0.0f);
+
+		rArmX = -55.0f - (ease * -55.0f);
+		rArmY = 45.0f - (ease * 45.0f);
+		rArmZ = 0.0f - (ease * 0.0f);
+		rLowerArmX = 0.0f - (ease * 0.0f);
+		rLowerArmY = 0.0f - (ease * 0.0f);
+		rHandX = 35.0f - (ease * 35.0f);
+		rHandY = 0.0f - (ease * 0.0f);
+		rHandZ = 0.0f - (ease * 0.0f);
+
+		lLegX = -35.0f - (ease * -35.0f);
+		lLegY = 0.0f - (ease * 0.0f);
+		lLegZ = 0.0f - (ease * 0.0f);
+		lKneeX = 35.0f - (ease * 35.0f);
+		lFootX = 0.0f - (ease * 0.0f);
+		lFootZ = 0.0f - (ease * 0.0f);
+
+		rLegX = 25.0f - (ease * 25.0f);
+		rLegY = 0.0f - (ease * 0.0f);
+		rLegZ = 0.0f - (ease * 0.0f);
+		rKneeX = 0.0f - (ease * 0.0f);
+		rFootX = -5.0f - (ease * -5.0f);
+		rFootZ = 0.0f - (ease * 0.0f);
+
+		charX = 0.0f; charY = 0.0f; charZ = 0.0f;
+	}
+
+	// ==========================================
+	// 3. APPLY VARIABLES TO PARTS
+	// ==========================================
+	parts[HEAD].angleX = headX; parts[HEAD].angleY = headY; parts[HEAD].angleZ = headZ;
+
+	parts[UPPER_TORSO].angleX = uTorsoX; parts[UPPER_TORSO].angleY = uTorsoY; parts[UPPER_TORSO].angleZ = uTorsoZ;
+	parts[LOWER_TORSO].angleX = lTorsoX; parts[LOWER_TORSO].angleY = lTorsoY; parts[LOWER_TORSO].angleZ = lTorsoZ;
+
+	parts[LEFT_UPPER_ARM].angleX = lArmX; parts[LEFT_UPPER_ARM].angleY = lArmY; parts[LEFT_UPPER_ARM].angleZ = lArmZ;
+	parts[LEFT_LOWER_ARM].angleX = lLowerArmX; parts[LEFT_LOWER_ARM].angleY = lLowerArmY;
+	parts[LEFT_HAND].angleX = lHandX; parts[LEFT_HAND].angleY = lHandY; parts[LEFT_HAND].angleZ = lHandZ;
+
+	parts[RIGHT_UPPER_ARM].angleX = rArmX; parts[RIGHT_UPPER_ARM].angleY = rArmY; parts[RIGHT_UPPER_ARM].angleZ = rArmZ;
+	parts[RIGHT_LOWER_ARM].angleX = rLowerArmX; parts[RIGHT_LOWER_ARM].angleY = rLowerArmY;
+	parts[RIGHT_HAND].angleX = rHandX; parts[RIGHT_HAND].angleY = rHandY; parts[RIGHT_HAND].angleZ = rHandZ;
+
+	parts[LEFT_UPPER_LEG].angleX = lLegX; parts[LEFT_UPPER_LEG].angleY = lLegY; parts[LEFT_UPPER_LEG].angleZ = lLegZ;
+	parts[LEFT_LOWER_LEG].angleX = lKneeX;
+	parts[LEFT_FOOT].angleX = lFootX; parts[LEFT_FOOT].angleZ = lFootZ;
+
+	parts[RIGHT_UPPER_LEG].angleX = rLegX; parts[RIGHT_UPPER_LEG].angleY = rLegY; parts[RIGHT_UPPER_LEG].angleZ = rLegZ;
+	parts[RIGHT_LOWER_LEG].angleX = rKneeX;
+	parts[RIGHT_FOOT].angleX = rFootX; parts[RIGHT_FOOT].angleZ = rFootZ;
+
+	characterX = charX; characterY = charY; characterZ = charZ;
+}
+void FirewheelAnimation() {
+	if (!isPlaying || currentSceneMode != ANIMATION) return;
+
+	animFrame += (1.0f * animSpeed);
+	float maxFrames = 90.0f;
+
+	if (animFrame > maxFrames) {
+		if (isLooping) animFrame = 0.0f;
+		else {
+			animFrame = maxFrames;
+			isPlaying = false;
+		}
+	}
+
+	float t = animFrame / maxFrames;
+
+	// ==========================================
+	// 1. DECLARE ALL VARIABLES (Set to 0)
+	// ==========================================
+	float headX = 0.0f, headY = 0.0f, headZ = 0.0f;
+	float uTorsoX = 0.0f, uTorsoY = 0.0f, uTorsoZ = 0.0f;
+	float lTorsoX = 0.0f, lTorsoY = 0.0f, lTorsoZ = 0.0f;
+
+	float lArmX = 0.0f, lArmY = 0.0f, lArmZ = 0.0f;
+	float lLowerArmX = 0.0f, lLowerArmY = 0.0f;
+	float lHandX = 0.0f, lHandY = 0.0f, lHandZ = 0.0f;
+
+	float rArmX = 0.0f, rArmY = 0.0f, rArmZ = 0.0f;
+	float rLowerArmX = 0.0f, rLowerArmY = 0.0f;
+	float rHandX = 0.0f, rHandY = 0.0f, rHandZ = 0.0f;
+
+	float lLegX = 0.0f, lLegY = 0.0f, lLegZ = 0.0f;
+	float lKneeX = 0.0f;
+	float lFootX = 0.0f, lFootZ = 0.0f;
+
+	float rLegX = 0.0f, rLegY = 0.0f, rLegZ = 0.0f;
+	float rKneeX = 0.0f;
+	float rFootX = 0.0f, rFootZ = 0.0f;
+
+	float charX = 0.0f, charY = 0.0f, charZ = 0.0f;
+
+	// ==========================================
+	// 2. ANIMATION PHASES
+	// ==========================================
+
+	// ---------------------------------------------------------
+	// PHASE 1: Wind-up / Aiming (0% to 40%) 
+	// Easing from 0.0f into your Phase 1 numbers!
+	// ---------------------------------------------------------
+	if (t <= 0.4f) {
+		float phaseT = t / 0.4f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		headX = ease * -10.0f; headY = 0.0f; headZ = 0.0f;
+
+		uTorsoX = ease * 20.0f; uTorsoY = 0.0f; uTorsoZ = 0.0f;
+		lTorsoX = ease * 15.0f; lTorsoY = 0.0f; lTorsoZ = 0.0f;
+
+		lArmX = ease * 60.0f; lArmY = ease * 60.0f; lArmZ = 0.0f;
+		lLowerArmX = ease * -55.0f; lLowerArmY = ease * 115.0f;
+		lHandX = ease * -30.0f; lHandY = ease * 5.0f; lHandZ = 0.0f;
+
+		rArmX = ease * 5.0f; rArmY = ease * -30.0f; rArmZ = 0.0f;
+		rLowerArmX = ease * 35.0f; rLowerArmY = 0.0f;
+		rHandX = ease * 20.0f; rHandY = ease * -35.0f; rHandZ = 0.0f;
+
+		lLegX = ease * 50.0f; lLegY = 0.0f; lLegZ = 0.0f;
+		lKneeX = ease * 20.0f;
+		lFootX = 0.0f; lFootZ = 0.0f;
+
+		rLegX = ease * 50.0f; rLegY = 0.0f; rLegZ = 0.0f;
+		rKneeX = ease * 5.0f;
+		rFootX = ease * 50.0f; rFootZ = 0.0f;
+
+		charX = 0.0f; charY = 0.0f; charZ = 0.0f;
+	}
+
+	// ---------------------------------------------------------
+	// PHASE 2: Action / Firing (40% to 60%)
+	// Body stays static, Arms transition to Phase 2 numbers!
+	// ---------------------------------------------------------
+	else if (t <= 0.6f) {
+		float phaseT = (t - 0.4f) / 0.2f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		// Head, Torso, and Legs remain locked in Phase 1 pose
+		headX = -10.0f; headY = 0.0f; headZ = 0.0f;
+		uTorsoX = 20.0f; uTorsoY = 0.0f; uTorsoZ = 0.0f;
+		lTorsoX = 15.0f; lTorsoY = 0.0f; lTorsoZ = 0.0f;
+		lLegX = 50.0f; lLegY = 0.0f; lLegZ = 0.0f;
+		lKneeX = 20.0f; lFootX = 0.0f; lFootZ = 0.0f;
+		rLegX = 50.0f; rLegY = 0.0f; rLegZ = 0.0f;
+		rKneeX = 5.0f; rFootX = 50.0f; rFootZ = 0.0f;
+
+		// Left Arm Dynamic Strike
+		lArmX = 60.0f + (ease * (100.0f - 60.0f));
+		lArmY = 60.0f; // Stays at 60
+		lArmZ = 0.0f;
+		lLowerArmX = -55.0f + (ease * (-50.0f - (-55.0f)));
+		lLowerArmY = 115.0f + (ease * (0.0f - 115.0f));
+		lHandX = -30.0f + (ease * (-15.0f - (-30.0f)));
+		lHandY = 5.0f + (ease * (-5.0f - 5.0f));
+		lHandZ = 0.0f;
+
+		// Right Arm Dynamic Sweep
+		rArmX = 5.0f + (ease * (0.0f - 5.0f));
+		rArmY = -30.0f + (ease * (70.0f - (-30.0f)));
+		rArmZ = 0.0f;
+		rLowerArmX = 35.0f + (ease * (45.0f - 35.0f));
+		rLowerArmY = 0.0f + (ease * (10.0f - 0.0f));
+		rHandX = 20.0f + (ease * (0.0f - 20.0f));
+		rHandY = -35.0f + (ease * (-60.0f - (-35.0f)));
+		rHandZ = 0.0f;
+	}
+
+	// ---------------------------------------------------------
+	// PHASE 3: Hold Pose (60% to 80%)
+	// Locks the entire body into the final Phase 2 numbers!
+	// ---------------------------------------------------------
+	else if (t <= 0.8f) {
+		headX = -10.0f; headY = 0.0f; headZ = 0.0f;
+		uTorsoX = 20.0f; uTorsoY = 0.0f; uTorsoZ = 0.0f;
+		lTorsoX = 15.0f; lTorsoY = 0.0f; lTorsoZ = 0.0f;
+
+		lArmX = 100.0f; lArmY = 60.0f; lArmZ = 0.0f;
+		lLowerArmX = -50.0f; lLowerArmY = 0.0f;
+		lHandX = -15.0f; lHandY = -5.0f; lHandZ = 0.0f;
+
+		rArmX = 0.0f; rArmY = 70.0f; rArmZ = 0.0f;
+		rLowerArmX = 45.0f; rLowerArmY = 10.0f;
+		rHandX = 0.0f; rHandY = -60.0f; rHandZ = 0.0f;
+
+		lLegX = 50.0f; lLegY = 0.0f; lLegZ = 0.0f;
+		lKneeX = 20.0f; lFootX = 0.0f; lFootZ = 0.0f;
+
+		rLegX = 50.0f; rLegY = 0.0f; rLegZ = 0.0f;
+		rKneeX = 5.0f; rFootX = 50.0f; rFootZ = 0.0f;
+	}
+
+	// ---------------------------------------------------------
+	// PHASE 4: Recovery (80% to 100%)
+	// Eases all Phase 2 numbers back to 0.0f for looping!
+	// ---------------------------------------------------------
+	else {
+		float phaseT = (t - 0.8f) / 0.2f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		headX = -10.0f - (ease * -10.0f);
+		uTorsoX = 20.0f - (ease * 20.0f);
+		lTorsoX = 15.0f - (ease * 15.0f);
+
+		lArmX = 100.0f - (ease * 100.0f); lArmY = 60.0f - (ease * 60.0f);
+		lLowerArmX = -50.0f - (ease * -50.0f); lLowerArmY = 0.0f;
+		lHandX = -15.0f - (ease * -15.0f); lHandY = -5.0f - (ease * -5.0f);
+
+		rArmX = 0.0f; rArmY = 70.0f - (ease * 70.0f);
+		rLowerArmX = 45.0f - (ease * 45.0f); rLowerArmY = 10.0f - (ease * 10.0f);
+		rHandX = 0.0f; rHandY = -60.0f - (ease * -60.0f);
+
+		lLegX = 50.0f - (ease * 50.0f); lKneeX = 20.0f - (ease * 20.0f);
+
+		rLegX = 50.0f - (ease * 50.0f); rKneeX = 5.0f - (ease * 5.0f); rFootX = 50.0f - (ease * 50.0f);
+	}
+
+	// ==========================================
+	// 3. APPLY VARIABLES TO PARTS
+	// ==========================================
+	parts[HEAD].angleX = headX; parts[HEAD].angleY = headY; parts[HEAD].angleZ = headZ;
+	parts[UPPER_TORSO].angleX = uTorsoX; parts[UPPER_TORSO].angleY = uTorsoY; parts[UPPER_TORSO].angleZ = uTorsoZ;
+	parts[LOWER_TORSO].angleX = lTorsoX; parts[LOWER_TORSO].angleY = lTorsoY; parts[LOWER_TORSO].angleZ = lTorsoZ;
+	parts[LEFT_UPPER_ARM].angleX = lArmX; parts[LEFT_UPPER_ARM].angleY = lArmY; parts[LEFT_UPPER_ARM].angleZ = lArmZ;
+	parts[LEFT_LOWER_ARM].angleX = lLowerArmX; parts[LEFT_LOWER_ARM].angleY = lLowerArmY;
+	parts[LEFT_HAND].angleX = lHandX; parts[LEFT_HAND].angleY = lHandY; parts[LEFT_HAND].angleZ = lHandZ;
+	parts[RIGHT_UPPER_ARM].angleX = rArmX; parts[RIGHT_UPPER_ARM].angleY = rArmY; parts[RIGHT_UPPER_ARM].angleZ = rArmZ;
+	parts[RIGHT_LOWER_ARM].angleX = rLowerArmX; parts[RIGHT_LOWER_ARM].angleY = rLowerArmY;
+	parts[RIGHT_HAND].angleX = rHandX; parts[RIGHT_HAND].angleY = rHandY; parts[RIGHT_HAND].angleZ = rHandZ;
+	parts[LEFT_UPPER_LEG].angleX = lLegX; parts[LEFT_UPPER_LEG].angleY = lLegY; parts[LEFT_UPPER_LEG].angleZ = lLegZ;
+	parts[LEFT_LOWER_LEG].angleX = lKneeX;
+	parts[LEFT_FOOT].angleX = lFootX; parts[LEFT_FOOT].angleZ = lFootZ;
+	parts[RIGHT_UPPER_LEG].angleX = rLegX; parts[RIGHT_UPPER_LEG].angleY = rLegY; parts[RIGHT_UPPER_LEG].angleZ = rLegZ;
+	parts[RIGHT_LOWER_LEG].angleX = rKneeX;
+	parts[RIGHT_FOOT].angleX = rFootX; parts[RIGHT_FOOT].angleZ = rFootZ;
+	characterX = charX; characterY = charY; characterZ = charZ;
+}
+void UpdateAnimation() {
+	if (currentAnimType == 0) {
+		SpearAttack();
+	}
+	else if (currentAnimType == 1) {
+		WalkAnimation();
+	}
+	else if (currentAnimType == 2) {
+		SlashAnimation();
+	}
+	else if (currentAnimType == 3) {
+		FirewheelAnimation(); // <--- NEW!
 	}
 }
 // UINT = Unsigned integer e.g. Mouse Moved (Like email title)
@@ -511,6 +1182,22 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 
 	case WM_TIMER:
 		UpdateAnimation();
+
+		// === NEW: DISPLAY ANGLES IN WINDOW TITLE ===
+		if (currentSceneMode == INTERACT) {
+			char titleBuffer[256];
+			sprintf_s(titleBuffer, "INTERACT MODE | Part ID: %d | Angle X: %.2f | Angle Y: %.2f | Angle Z: %.2f",
+				currentPart,
+				parts[currentPart].angleX,
+				parts[currentPart].angleY,
+				parts[currentPart].angleZ);
+
+			SetWindowTextA(hWnd, titleBuffer); // Update the window title!
+		}
+		else {
+			SetWindowTextA(hWnd, WINDOW_TITLE); // Change it back when not in interact mode
+		}
+		// ===========================================
 		scarfTime += scarfSpeed;
 		InvalidateRect(hWnd, NULL, FALSE); // redraw
 		break;
@@ -789,8 +1476,11 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				break;
 			case ANIMATION:
 				// Switch to Previous Animation
-				currentWeaponAnim = (currentWeaponAnim + TOTAL_Weapon_ANIMS - 1) % TOTAL_Weapon_ANIMS;
-				animFrame = 0.0f; // Reset timeline
+				currentAnimType--;
+				if (currentAnimType < 0) currentAnimType = 3; // Loop to the end (1 is Walk)
+
+				animFrame = 0.0f; // Reset timeline so the new animation starts properly
+				isPlaying = true; // Auto-play when switching
 				break;
 			}
 			break;
@@ -808,8 +1498,11 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				break;
 			case ANIMATION:
 				// Switch to Next Animation
-				currentWeaponAnim = (currentWeaponAnim + 1) % TOTAL_Weapon_ANIMS;
-				animFrame = 0.0f; // Reset timeline
+				currentAnimType++;
+				if (currentAnimType > 4) currentAnimType = 0; // Loop back to start (0 is Spear)
+
+				animFrame = 0.0f; // Reset timeline so the new animation starts properly
+				isPlaying = true; // Auto-play when switching
 				break;
 			}
 			break;
@@ -902,7 +1595,7 @@ void InitParts()
 		0.0f, 0.0f, 0.0f,
 
 		-5.0f, 20.0f,
-		-15.0f, 15.0f,
+		-60.0f, 60.0f,
 		-8.0f, 8.0f
 	};
 
@@ -913,7 +1606,7 @@ void InitParts()
 		0.0f, 0.0f, 0.0f,
 
 		-20.0f, 5.0f,
-		-15.0f, 15.0f,
+		-60.0f, 60.0f,
 		-8.0f, 8.0f
 	};
 
@@ -923,7 +1616,7 @@ void InitParts()
 		0.0f, 0.0f, 0.0f,
 
 		0.0f, 0.0f, 0.0f,
-		-60.0f, 60.0f,
+		-60.0f, 100.0f,
 		-30.0f, 100.0f,
 		-80.0f, 80.0f
 	};
@@ -934,7 +1627,7 @@ void InitParts()
 
 		0.0f, 0.0f, 0.0f,
 
-		-10.0f, 70.0f,
+		-90.0f, 10.0f,
 		0.0f, 130.0f,
 		0.0f, 0.0f
 	};
@@ -946,7 +1639,7 @@ void InitParts()
 		0.0f, 0.0f, 0.0f,
 
 		-100.0f, 10.0f,
-		-30.0f, 30.0f,
+		-90.0f, 90.0f,
 		-50.0f, 80.0f
 	};
 
@@ -958,7 +1651,7 @@ void InitParts()
 		0.0f, 0.0f, 0.0f,
 
 
-		-60.0f, 60.0f,
+		-60.0f, 100.0f,
 		-30.0f, 100.0f,
 		-80.0f, 80.0f
 	};
@@ -981,7 +1674,7 @@ void InitParts()
 		0.0f, 0.0f, 0.0f,
 
 		-10.0f, 100.0f,
-		-30.0f, 30.0f,
+		-90.0f, 90.0f,
 		-80.0f, 50.0f
 	};
 
@@ -3714,12 +4407,13 @@ void DrawArm(float side) {
 	if (side > 0.0f) {
 		glPushMatrix();
 
-		switch (currentWeapon) {
+		// NEW: This math trick maps states 3,4,5 back to 0,1,2 so the hands work normally!
+		int handWeapon = currentWeapon % 3;
+
+		switch (handWeapon) {
 		case 1: // --- SPEAR ---
 			// 1. Position: X is slightly negative to align with the palm center, 
 			// Y is 0.0f to center it, Z pushes it slightly forward into the fingers.
-
-
 			glTranslatef(0.00, -0.05f, -0.18f);
 
 			// 2. Scale
@@ -3734,20 +4428,21 @@ void DrawArm(float side) {
 			DrawSpear(0.7);
 			break;
 
-		case 2: // --- WEAPON 2 (Example) ---
+		case 2: // --- WEAPON 2 (Fish Sword) ---
 			// 1. Position: X is slightly negative to align with the palm center, 
 			// Y is 0.0f to center it, Z pushes it slightly forward into the fingers.
 			glTranslatef(-0.07f, 0.01f, 0.25f);
 			glRotatef(270.0f, 0.0f, 1.0f, 0.0f);
 			glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+
 			// 2. Scale
 			glScalef(0.2f, 0.2f, 0.2f);
+
 			// 3. Rotation: Make it vertical
 			// 4. CENTER IT: Slide the spear backward by half its length
 			glTranslatef(0.0f, 0.0f, -0.35f);
 
 			DrawFishSword(0.7);
-
 			break;
 
 		case 0: // --- NO WEAPON ---
@@ -3998,7 +4693,8 @@ void DrawFoot()
 
 	extern int currentWeapon; // (Optional: depending on where currentWeapon is declared, you might need this)
 
-	if (currentWeapon == 3) {
+	// NEW: Wheels appear on states 3, 4, and 5!
+	if (currentWeapon >= 3) {
 		glDisable(GL_TEXTURE_2D); // Turn off skin texture for the fiery colors
 
 		glPushMatrix();
