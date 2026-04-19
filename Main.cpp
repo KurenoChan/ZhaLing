@@ -315,6 +315,7 @@ GLuint fishGoldBackTexture;
 GLuint bananaLeafTexture;
 GLuint bananaLeafHandleTexture;
 GLuint goldBananaLeafTexture;
+GLuint blackSilverTexture;
 
 // ---------
 // Constants
@@ -708,121 +709,121 @@ void SpearAttack() {
 		// PHASE 1: Wind-up (0% to 40%) 
 		// Formula: ease * TARGET_1
 		// ---------------------------------------------------------
-		if (t <= 0.4f) {
-			float phaseT = t / 0.4f;
-			float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+	if (t <= 0.4f) {
+		float phaseT = t / 0.4f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
 
-			headX = ease * 0.0f;
-			headY = ease * -20.0f;
-			headZ = ease * 0.0f;
-			uTorsoX = ease * 0.0f;
-			uTorsoY = ease * 15.0f;
-			uTorsoZ = ease * 0.0f;
-			lTorsoX = ease * 0.0f;
-			lTorsoY = ease * 15.0f;
-			lTorsoZ = ease * 0.0f;
+		headX = ease * 0.0f;
+		headY = ease * -20.0f;
+		headZ = ease * 0.0f;
+		uTorsoX = ease * 0.0f;
+		uTorsoY = ease * 15.0f;
+		uTorsoZ = ease * 0.0f;
+		lTorsoX = ease * 0.0f;
+		lTorsoY = ease * 15.0f;
+		lTorsoZ = ease * 0.0f;
 
-			lArmX = ease * -60.0f; lArmY = ease * -30.0f; lArmZ = ease * 0.0f;
-			lLowerArmX = ease * 70.0f; lLowerArmY = ease * 130.0f;
-			lHandX = ease * -15.0f; lHandY = ease * 30.0f; lHandZ = ease * 0.0f;
+		lArmX = ease * -60.0f; lArmY = ease * -30.0f; lArmZ = ease * 0.0f;
+		lLowerArmX = ease * 70.0f; lLowerArmY = ease * 130.0f;
+		lHandX = ease * -15.0f; lHandY = ease * 30.0f; lHandZ = ease * 0.0f;
 
-			rArmX = ease * 35.0f; rArmY = ease * -30.0f; rArmZ = ease * 0.0f;
-			rLowerArmX = ease * -5.0f; rLowerArmY = ease * 0.0f;
-			rHandX = ease * 0.0f; rHandY = ease * 30.0f; rHandZ = ease * 0.0f;
+		rArmX = ease * 35.0f; rArmY = ease * -30.0f; rArmZ = ease * 0.0f;
+		rLowerArmX = ease * -5.0f; rLowerArmY = ease * 0.0f;
+		rHandX = ease * 0.0f; rHandY = ease * 30.0f; rHandZ = ease * 0.0f;
 
-			lLegX = ease * -50.0f; lLegY = ease * 10.0f; lLegZ = ease * 0.0f;
-			lKneeX = ease * 40.0f;
-			rLegX = ease * 0.0f; rLegY = ease * 20.0f; rLegZ = ease * 0.0f;
-			rKneeX = ease * 50.0f;
+		lLegX = ease * -50.0f; lLegY = ease * 10.0f; lLegZ = ease * 0.0f;
+		lKneeX = ease * 40.0f;
+		rLegX = ease * 0.0f; rLegY = ease * 20.0f; rLegZ = ease * 0.0f;
+		rKneeX = ease * 50.0f;
 
-			charX = characterX; charY = characterY; charZ = characterZ;
-		}
+		charX = characterX; charY = characterY; charZ = characterZ;
+	}
 
-		// ---------------------------------------------------------
-		// PHASE 2: Thrust (40% to 60%)
-		// Formula: START + (ease * (TARGET - START))
-		// ---------------------------------------------------------
-		else if (t <= 0.6f) {
-			float phaseT = (t - 0.4f) / 0.2f;
-			float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+	// ---------------------------------------------------------
+	// PHASE 2: Thrust (40% to 60%)
+	// Formula: START + (ease * (TARGET - START))
+	// ---------------------------------------------------------
+	else if (t <= 0.6f) {
+		float phaseT = (t - 0.4f) / 0.2f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
 
-			// HEAD
-			headX = 0.0f + (ease * (0.0f - 0.0f));
-			headY = -20.0f + (ease * (25.0f - (-20.0f)));
-			headZ = 0.0f + (ease * (0.0f - 0.0f));
+		// HEAD
+		headX = 0.0f + (ease * (0.0f - 0.0f));
+		headY = -20.0f + (ease * (25.0f - (-20.0f)));
+		headZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			// UPPER TORSO
-			uTorsoX = 0.0f + (ease * (0.0f - 0.0f));
-			uTorsoY = 15.0f + (ease * (-25.0f - 15.0f));
-			uTorsoZ = 0.0f + (ease * (0.0f - 0.0f));
+		// UPPER TORSO
+		uTorsoX = 0.0f + (ease * (0.0f - 0.0f));
+		uTorsoY = 15.0f + (ease * (-25.0f - 15.0f));
+		uTorsoZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			// LOWER TORSO
-			lTorsoX = 0.0f + (ease * (0.0f - 0.0f));
-			lTorsoY = 15.0f + (ease * (-15.0f - 15.0f));
-			lTorsoZ = 0.0f + (ease * (0.0f - 0.0f));
+		// LOWER TORSO
+		lTorsoX = 0.0f + (ease * (0.0f - 0.0f));
+		lTorsoY = 15.0f + (ease * (-15.0f - 15.0f));
+		lTorsoZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			// LEFT ARM (Updated with your new targets!)
-			lArmX = -60.0f + (ease * (-55.0f - (-60.0f)));
-			lArmY = -30.0f + (ease * (-25.0f - (-30.0f)));
-			lArmZ = 0.0f + (ease * (0.0f - 0.0f));
+		// LEFT ARM (Updated with your new targets!)
+		lArmX = -60.0f + (ease * (-55.0f - (-60.0f)));
+		lArmY = -30.0f + (ease * (-25.0f - (-30.0f)));
+		lArmZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			lLowerArmX = 70.0f + (ease * (35.0f - 70.0f));     // Target is 35
-			lLowerArmY = 130.0f + (ease * (115.0f - 130.0f));  // Target is 115
+		lLowerArmX = 70.0f + (ease * (35.0f - 70.0f));     // Target is 35
+		lLowerArmY = 130.0f + (ease * (115.0f - 130.0f));  // Target is 115
 
-			lHandX = -15.0f + (ease * (-100.0f - (-15.0f)));   // Target is -100
-			lHandY = 30.0f + (ease * (0.0f - 30.0f));          // Target is 0
-			lHandZ = 0.0f + (ease * (0.0f - 0.0f));
+		lHandX = -15.0f + (ease * (-100.0f - (-15.0f)));   // Target is -100
+		lHandY = 30.0f + (ease * (0.0f - 30.0f));          // Target is 0
+		lHandZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			// RIGHT ARM
-			rArmX = 35.0f + (ease * (0.0f - 35.0f));
-			rArmY = -30.0f + (ease * (65.0f - (-30.0f)));
-			rArmZ = 0.0f + (ease * (0.0f - 0.0f));
-			rLowerArmX = -5.0f + (ease * (0.0f - (-5.0f)));
-			rLowerArmY = 0.0f + (ease * (5.0f - 0.0f));
-			rHandX = 0.0f + (ease * (0.0f - 0.0f));
-			rHandY = 30.0f + (ease * (-90.0f - 30.0f));
-			rHandZ = 0.0f + (ease * (0.0f - 0.0f));
+		// RIGHT ARM
+		rArmX = 35.0f + (ease * (0.0f - 35.0f));
+		rArmY = -30.0f + (ease * (65.0f - (-30.0f)));
+		rArmZ = 0.0f + (ease * (0.0f - 0.0f));
+		rLowerArmX = -5.0f + (ease * (0.0f - (-5.0f)));
+		rLowerArmY = 0.0f + (ease * (5.0f - 0.0f));
+		rHandX = 0.0f + (ease * (0.0f - 0.0f));
+		rHandY = 30.0f + (ease * (-90.0f - 30.0f));
+		rHandZ = 0.0f + (ease * (0.0f - 0.0f));
 
-			// LEFT LEG
-			lLegX = -50.0f + (ease * (35.0f - (-50.0f)));
-			lLegY = 10.0f + (ease * (10.0f - 10.0f));
-			lLegZ = 0.0f + (ease * (0.0f - 0.0f));
-			lKneeX = 40.0f + (ease * (0.0f - 40.0f));
+		// LEFT LEG
+		lLegX = -50.0f + (ease * (35.0f - (-50.0f)));
+		lLegY = 10.0f + (ease * (10.0f - 10.0f));
+		lLegZ = 0.0f + (ease * (0.0f - 0.0f));
+		lKneeX = 40.0f + (ease * (0.0f - 40.0f));
 
-			// RIGHT LEG
-			rLegX = 0.0f + (ease * (-45.0f - 0.0f));
-			rLegY = 20.0f + (ease * (20.0f - 20.0f));
-			rLegZ = 0.0f + (ease * (0.0f - 0.0f));
-			rKneeX = 50.0f + (ease * (25.0f - 50.0f));
+		// RIGHT LEG
+		rLegX = 0.0f + (ease * (-45.0f - 0.0f));
+		rLegY = 20.0f + (ease * (20.0f - 20.0f));
+		rLegZ = 0.0f + (ease * (0.0f - 0.0f));
+		rKneeX = 50.0f + (ease * (25.0f - 50.0f));
 
-			charX = characterX, charY = characterY, charZ = characterZ;
-		}
+		charX = characterX, charY = characterY, charZ = characterZ;
+	}
 
-		// ---------------------------------------------------------
-		// PHASE 3: Hold Pose (60% to 80%)
-		// ---------------------------------------------------------
-		else if (t <= 0.8f) {
-			headX = 0.0f; headY = 25.0f; headZ = 0.0f;
-			uTorsoX = 0.0f; uTorsoY = -25.0f; uTorsoZ = 0.0f;
-			lTorsoX = 0.0f; lTorsoY = -15.0f; lTorsoZ = 0.0f;
+	// ---------------------------------------------------------
+	// PHASE 3: Hold Pose (60% to 80%)
+	// ---------------------------------------------------------
+	else if (t <= 0.8f) {
+		headX = 0.0f; headY = 25.0f; headZ = 0.0f;
+		uTorsoX = 0.0f; uTorsoY = -25.0f; uTorsoZ = 0.0f;
+		lTorsoX = 0.0f; lTorsoY = -15.0f; lTorsoZ = 0.0f;
 
-			// Left arm holds your new poses!
-			lArmX = -55.0f; lArmY = -25.0f; lArmZ = 0.0f;
-			lLowerArmX = 35.0f; lLowerArmY = 115.0f;
-			lHandX = -100.0f; lHandY = 0.0f; lHandZ = 0.0f;
+		// Left arm holds your new poses!
+		lArmX = -55.0f; lArmY = -25.0f; lArmZ = 0.0f;
+		lLowerArmX = 35.0f; lLowerArmY = 115.0f;
+		lHandX = -100.0f; lHandY = 0.0f; lHandZ = 0.0f;
 
-			rArmX = 0.0f; rArmY = 65.0f; rArmZ = 0.0f;
-			rLowerArmX = 0.0f; rLowerArmY = 5.0f;
-			rHandX = 0.0f; rHandY = -90.0f; rHandZ = 0.0f;
+		rArmX = 0.0f; rArmY = 65.0f; rArmZ = 0.0f;
+		rLowerArmX = 0.0f; rLowerArmY = 5.0f;
+		rHandX = 0.0f; rHandY = -90.0f; rHandZ = 0.0f;
 
-			lLegX = 35.0f; lLegY = 10.0f; lLegZ = 0.0f;
-			lKneeX = 0.0f;
+		lLegX = 35.0f; lLegY = 10.0f; lLegZ = 0.0f;
+		lKneeX = 0.0f;
 
-			rLegX = -45.0f; rLegY = 20.0f; rLegZ = 0.0f;
-			rKneeX = 25.0f;
+		rLegX = -45.0f; rLegY = 20.0f; rLegZ = 0.0f;
+		rKneeX = 25.0f;
 
-			charX = characterX, charY = characterY, charZ = characterZ;
-		}
+		charX = characterX, charY = characterY, charZ = characterZ;
+	}
 
 		// ---------------------------------------------------------
 		// PHASE 4: Recovery (80% to 100%)
@@ -2894,6 +2895,8 @@ void LoadWeaponTextures()
 	bananaLeafTexture = LoadTexture("Assets/Weapon/BananaLeaf.bmp");
 	bananaLeafHandleTexture = LoadTexture("Assets/Weapon/BananaFanHandle.bmp");
 	goldBananaLeafTexture = LoadTexture("Assets/Weapon/GoldBananaLeaf.bmp");
+	//Gun
+	blackSilverTexture = LoadTexture("Assets/Weapon/blackSliver.bmp");
 }
 
 void InitTextures()
@@ -4965,103 +4968,72 @@ void DrawBananaLeafFan(float scale) {
 void DrawMagnumGun(float scale, bool isShooting) {
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL);
-	gluQuadricTexture(quad, GL_TRUE);
+	gluQuadricTexture(quad, GL_TRUE); // Essential for GLU shapes to show textures
 
 	glPushMatrix();
-	// I added a slight global scale-down here so it isn't massive in the character's hand
 	glScalef(scale * 0.8f, scale * 0.8f, scale * 0.8f);
 
 	// ==========================================
-	// --- 1. THE BARREL (Sleek & Straight) ---
+	// --- 1. THE BARREL & UNDERLUG ---
 	// ==========================================
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, sliverTexture);
-	glColor3f(0.3f, 0.35f, 0.4f);
+	// Choose texture based on your index
+	if (currentBladeIndex == 0)
+		glBindTexture(GL_TEXTURE_2D, sliverTexture);
+	else
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+
+	glColor3f(1.0f, 1.0f, 1.0f); // Use white color so texture isn't tinted dark
 
 	glPushMatrix();
-	glTranslatef(-0.05f, 0.05f, 0.0f);   // Start exactly where the cylinder ends
-	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);  // Point forward
+	glTranslatef(-0.05f, 0.05f, 0.0f);
+	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 
-	// Main Barrel Tube (Much thinner)
+	// Main Barrel Tube
 	gluCylinder(quad, 0.025, 0.025, 0.45f, 15, 1);
 
-	// Underlug (The thick metal part right under the barrel)
+	// Underlug (Texture follows automatically)
 	glTranslatef(0.0f, -0.015f, 0.0f);
 	gluCylinder(quad, 0.02, 0.02, 0.4f, 15, 1);
-
-	// Front Sight (Tiny bump at the tip)
-	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.1f, 0.1f, 0.1f);
-	glTranslatef(0.0f, 0.045f, 0.4f);
-	glScalef(0.01f, 0.02f, 0.02f);
-	gluSphere(quad, 1.0, 10, 10);
-	glEnable(GL_TEXTURE_2D);
 	glPopMatrix();
-
 
 	// ==========================================
 	// --- 2. THE CYLINDER (MAGAZINE) ---
 	// ==========================================
-	glColor3f(0.2f, 0.25f, 0.3f);
+	// Use the opposite metal texture for contrast
+	if (currentBladeIndex == 0)
+		glBindTexture(GL_TEXTURE_2D, blackSilverTexture);
+	else
+		glBindTexture(GL_TEXTURE_2D, fishGoldBackTexture);
+
 	glPushMatrix();
-	glTranslatef(-0.2f, 0.03f, 0.0f); // Shifted to the middle
+	glTranslatef(-0.2f, 0.03f, 0.0f);
 	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
 
-	// A much tighter, compact cylinder
 	gluCylinder(quad, 0.07, 0.07, 0.15f, 15, 1);
-
-	// Caps to make it solid
-	gluDisk(quad, 0.0, 0.07, 15, 1);
-	glTranslatef(0.0f, 0.0f, 0.15f);
-	gluDisk(quad, 0.0, 0.07, 15, 1);
+	gluDisk(quad, 0.0, 0.07, 15, 1); // Front cap
+	glTranslatef(0.0f, 0.0, 0.15f);
+	gluDisk(quad, 0.0, 0.07, 15, 1); // Back cap
 	glPopMatrix();
 
-
 	// ==========================================
-	// --- 3. THE FRAME (BODY) ---
+	// --- 3. THE FRAME (BODY) - Manual Texturing ---
 	// ==========================================
-	glColor3f(0.3f, 0.35f, 0.4f);
+	if (currentBladeIndex == 0) {
+		glBindTexture(GL_TEXTURE_2D, sliverTexture);
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+	}
 
-	// Main body holding the cylinder (Using a CUBE instead of a sphere for a blocky look)
 	glPushMatrix();
+	// Position the frame
 	glTranslatef(-0.23f, 0.03f, 0.0f);
-	glScalef(0.12f, 0.10f, 0.05f); // Scale to make it a flat, rectangular block
 
-	// Draw a simple 3D box manually
-	glBegin(GL_QUADS);
-	// Front Face
-	glVertex3f(-0.5f, -0.5f, 0.5f);
-	glVertex3f(0.5f, -0.5f, 0.5f);
-	glVertex3f(0.5f, 0.5f, 0.5f);
-	glVertex3f(-0.5f, 0.5f, 0.5f);
-	// Back Face
-	glVertex3f(-0.5f, -0.5f, -0.5f);
-	glVertex3f(-0.5f, 0.5f, -0.5f);
-	glVertex3f(0.5f, 0.5f, -0.5f);
-	glVertex3f(0.5f, -0.5f, -0.5f);
-	// Top Face
-	glVertex3f(-0.5f, 0.5f, -0.5f);
-	glVertex3f(-0.5f, 0.5f, 0.5f);
-	glVertex3f(0.5f, 0.5f, 0.5f);
-	glVertex3f(0.5f, 0.5f, -0.5f);
-	// Bottom Face
-	glVertex3f(-0.5f, -0.5f, -0.5f);
-	glVertex3f(0.5f, -0.5f, -0.5f);
-	glVertex3f(0.5f, -0.5f, 0.5f);
-	glVertex3f(-0.5f, -0.5f, 0.5f);
-	// Right face
-	glVertex3f(0.5f, -0.5f, -0.5f);
-	glVertex3f(0.5f, 0.5f, -0.5f);
-	glVertex3f(0.5f, 0.5f, 0.5f);
-	glVertex3f(0.5f, -0.5f, 0.5f);
-	// Left Face
-	glVertex3f(-0.5f, -0.5f, -0.5f);
-	glVertex3f(-0.5f, -0.5f, 0.5f);
-	glVertex3f(-0.5f, 0.5f, 0.5f);
-	glVertex3f(-0.5f, 0.5f, -0.5f);
-	glEnd();
+	// Call your method using the dimensions previously used in glScalef
+	// width = 0.12f, height = 0.10f, depth = 0.05f
+	DrawCuboidPolygon(0.12f, 0.10f, 0.05f);
 	glPopMatrix();
-
 	// Top strap (metal over the cylinder)
 	glPushMatrix();
 	glTranslatef(-0.25f, 0.10f, 0.0f);
@@ -5070,55 +5042,53 @@ void DrawMagnumGun(float scale, bool isShooting) {
 	gluCylinder(quad, 0.04, 0.04, 0.2f, 10, 1);
 	glPopMatrix();
 
-
 	// ==========================================
 	// --- 4. THE HANDLE (WOODEN GRIP) ---
 	// ==========================================
-	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, woodTexture);
-	glColor3f(0.4f, 0.2f, 0.1f);
-
 	glPushMatrix();
-	// Move to the attachment point on the frame
 	glTranslatef(-0.24f, 0.02f, 0.0f);
-
-	//// Point the cylinder straight down
 	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-
-	// Squash it on the thickness axis (0.4f) so it fits in the hand!
 	glScalef(1.0f, 0.4f, 1.0f);
-
-	// Draw the handle cylinder (Top radius 0.05, bottom radius 0.04, length 0.16)
 	gluCylinder(quad, 0.04, 0.04, 0.16f, 15, 1);
-
-	// Add a flat cap at the bottom of the handle
 	glTranslatef(0.0f, 0.0f, 0.16f);
 	gluDisk(quad, 0.0, 0.04, 15, 1);
-
 	glPopMatrix();
 
 	// ==========================================
 	// --- 5. TRIGGER & GUARD ---
 	// ==========================================
-	glDisable(GL_TEXTURE_2D);
-	glColor3f(0.15f, 0.15f, 0.15f);
+	glEnable(GL_TEXTURE_2D); // Re-enable texturing
+	if (currentBladeIndex == 0)
+		glBindTexture(GL_TEXTURE_2D, sliverTexture);
+	else
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
 
-	// Trigger Guard (Made much thinner)
+	glColor3f(1.0f, 1.0f, 1.0f); // Set to white to see the texture clearly
+
+	// --- Trigger Guard ---
 	glBegin(GL_QUAD_STRIP);
 	for (int i = 0; i <= 10; i++) {
 		float angle = 3.14159f + ((float)i / 10.0f) * 3.14159f;
 		float px = -0.15f + cos(angle) * 0.05f;
 		float py = -0.04f + sin(angle) * 0.05f;
-		glVertex3f(px, py, 0.005f);  // Super thin edges
-		glVertex3f(px, py, -0.005f);
+
+		// Map texture: 'u' goes from 0 to 1 across the loop
+		float u = (float)i / 10.0f;
+
+		glTexCoord2f(u, 0.0f); glVertex3f(px, py, 0.005f);
+		glTexCoord2f(u, 1.0f); glVertex3f(px, py, -0.005f);
 	}
 	glEnd();
 
-	// Trigger 
+	// --- Trigger ---
 	glPushMatrix();
 	glTranslatef(-0.16f, -0.06f, 0.0f);
 	glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
 	glScalef(0.01f, 0.03f, 0.01f);
+
+	// gluSphere will use the bound metal texture automatically 
+	// because gluQuadricTexture(quad, GL_TRUE) was called at the start
 	gluSphere(quad, 1.0, 10, 10);
 	glPopMatrix();
 
