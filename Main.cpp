@@ -26,14 +26,15 @@ struct ColorList
 
 enum CameraMode
 {
-	PERSPECTIVE,
-	ORTHO,
+	CENTER,
 	LSIDE,
 	RSIDE,
+	PERSPECTIVE,
+	ORTHO,
 	CAMERA_COUNT
 };
 
-CameraMode currentCameraMode = PERSPECTIVE;
+CameraMode currentCameraMode = CENTER;
 
 // ===========
 // Scene Modes
@@ -320,6 +321,7 @@ GLuint bananaLeafTexture;
 GLuint bananaLeafHandleTexture;
 GLuint goldBananaLeafTexture;
 GLuint blackSilverTexture;
+GLuint diamondTexture;
 
 // ---------
 // Constants
@@ -432,7 +434,7 @@ void InitializeCharacterTexturePresets()
 	characterTexturePresets.push_back({ skinTexture, seaTexture, skyTexture, skyTexture, silverTexture });
 	characterTexturePresets.push_back({ skinTexture, grassTexture, woodTexture, grassTexture, goldTexture });
 	characterTexturePresets.push_back({ skinTexture, goldTexture, goldTexture, goldTexture, goldTexture });
-	characterTexturePresets.push_back({ skinTexture, brownClothTexture, brickTexture, brownClothTexture, goldTexture });
+	characterTexturePresets.push_back({ skinTexture, brownClothTexture, dirtTexture, dirtTexture, goldTexture });
 
 	currentCharacterTexturePresetIndex = FIRE_ELEMENT;
 	ApplyCharacterTexturePreset();
@@ -1175,7 +1177,8 @@ void FirewheelAnimation() {
 	ResetModel();
 
 	currentLeftWeapon = 0;
-	currentRightWeapon = 6;
+	currentRightWeapon = 7;
+
 	animFrame += (1.0f * animSpeed);
 	float maxFrames = 90.0f;
 
@@ -2099,6 +2102,199 @@ void EnergyBeamAnimation()
 	characterY = pose.charY;
 }
 
+void DualSwordRushAnimation()
+{
+	if (!isPlaying || currentSceneMode != ANIMATION) return;
+
+	currentLeftWeapon = 5;
+	currentRightWeapon = 5;
+	float maxFrames = 96.0f;
+	animFrame += (1.0f * animSpeed);
+
+	if (animFrame > maxFrames)
+	{
+		if (isLooping)
+			animFrame = 0.0f;
+		else
+		{
+			animFrame = maxFrames;
+			isPlaying = false;
+		}
+	}
+
+	float t = animFrame / maxFrames;
+	AnimationPose pose;
+
+	if (t <= 0.22f)
+	{
+		float phaseT = t / 0.22f;
+		float ease = (1.0f - cosf(phaseT * PI)) * 0.5f;
+
+		pose.torsoY = -18.0f * ease;
+		pose.torsoX = 8.0f * ease;
+		pose.lowerTorsoX = 5.0f * ease;
+		pose.headX = -4.0f * ease;
+
+		pose.rArmX = 55.0f * ease;
+		pose.rArmY = 18.0f * ease;
+		pose.rArmZ = 45.0f * ease;
+		pose.rLowerArmX = 18.0f * ease;
+		pose.rHandX = 25.0f * ease;
+		pose.rHandY = -25.0f * ease;
+
+		pose.lArmX = -20.0f * ease;
+		pose.lArmY = 75.0f * ease;
+		pose.lArmZ = -28.0f * ease;
+		pose.lLowerArmX = 35.0f * ease;
+		pose.lHandX = -15.0f * ease;
+		pose.lHandY = 12.0f * ease;
+
+		pose.lLegX = 22.0f * ease;
+		pose.rLegX = -14.0f * ease;
+		pose.lKneeX = 20.0f * ease;
+		pose.rKneeX = 10.0f * ease;
+		pose.lFootX = -8.0f * ease;
+		pose.rFootX = 5.0f * ease;
+
+		pose.charY = -0.13f - 0.03f * ease;
+		pose.charZ = -1.0f;
+	}
+	else if (t <= 0.46f)
+	{
+		float phaseT = (t - 0.22f) / 0.24f;
+		float ease = (1.0f - cosf(phaseT * PI)) * 0.5f;
+
+		pose.torsoY = -18.0f + (-48.0f * ease);
+		pose.torsoX = 8.0f + 10.0f * ease;
+		pose.lowerTorsoX = 5.0f + 6.0f * ease;
+		pose.headX = -4.0f + 10.0f * ease;
+
+		pose.rArmX = 55.0f + (-120.0f * ease);
+		pose.rArmY = 18.0f + 55.0f * ease;
+		pose.rArmZ = 45.0f + (-70.0f * ease);
+		pose.rLowerArmX = 18.0f + 12.0f * ease;
+		pose.rHandX = 25.0f + 20.0f * ease;
+		pose.rHandY = -25.0f + 35.0f * ease;
+
+		pose.lArmX = -20.0f + 40.0f * ease;
+		pose.lArmY = 75.0f + (-20.0f * ease);
+		pose.lArmZ = -28.0f + 35.0f * ease;
+		pose.lLowerArmX = 35.0f + 5.0f * ease;
+		pose.lHandX = -15.0f + 10.0f * ease;
+		pose.lHandY = 12.0f + (-20.0f * ease);
+
+		pose.lLegX = 22.0f + (-32.0f * ease);
+		pose.rLegX = -14.0f + 34.0f * ease;
+		pose.lKneeX = 20.0f + 16.0f * ease;
+		pose.rKneeX = 10.0f;
+		pose.lFootX = -8.0f + (-5.0f * ease);
+		pose.rFootX = 5.0f;
+
+		pose.charY = -0.16f - 0.02f * ease;
+		pose.charZ = -1.0f + 0.12f * ease;
+	}
+	else if (t <= 0.72f)
+	{
+		float phaseT = (t - 0.46f) / 0.26f;
+		float ease = (1.0f - cosf(phaseT * PI)) * 0.5f;
+		float shake = sinf(phaseT * PI * 8.0f) * 3.0f;
+
+		pose.torsoY = -66.0f + 92.0f * ease;
+		pose.torsoX = 18.0f - 14.0f * ease;
+		pose.lowerTorsoX = 11.0f - 8.0f * ease;
+		pose.headX = 6.0f - 8.0f * ease;
+
+		pose.rArmX = -65.0f + 35.0f * ease;
+		pose.rArmY = 73.0f - 20.0f * ease;
+		pose.rArmZ = -25.0f + 55.0f * ease;
+		pose.rLowerArmX = 30.0f - 15.0f * ease;
+		pose.rHandX = 45.0f - 22.0f * ease;
+		pose.rHandY = 10.0f - 15.0f * ease;
+
+		pose.lArmX = 20.0f + (-115.0f * ease);
+		pose.lArmY = 55.0f + (-42.0f * ease);
+		pose.lArmZ = 7.0f + 68.0f * ease;
+		pose.lLowerArmX = 40.0f - 10.0f * ease;
+		pose.lHandX = -5.0f - 25.0f * ease;
+		pose.lHandY = -8.0f - 25.0f * ease;
+
+		pose.lLegX = -10.0f + 28.0f * ease;
+		pose.rLegX = 20.0f - 35.0f * ease;
+		pose.lKneeX = 36.0f - 10.0f * ease;
+		pose.rKneeX = 10.0f + 18.0f * ease;
+		pose.lFootX = -13.0f + 8.0f * ease;
+		pose.rFootX = 5.0f - 10.0f * ease;
+
+		pose.charY = -0.18f + sinf(phaseT * PI * 4.0f) * 0.01f;
+		pose.charZ = -0.88f - 0.08f * ease + shake * 0.0008f;
+	}
+	else
+	{
+		float phaseT = (t - 0.72f) / 0.28f;
+		float ease = (1.0f - cosf(phaseT * PI)) * 0.5f;
+
+		pose.torsoY = 26.0f - 26.0f * ease;
+		pose.torsoX = 4.0f - 4.0f * ease;
+		pose.lowerTorsoX = 3.0f - 3.0f * ease;
+		pose.headX = -2.0f + 2.0f * ease;
+
+		pose.rArmX = -30.0f + 30.0f * ease;
+		pose.rArmY = 53.0f - 53.0f * ease;
+		pose.rArmZ = 30.0f - 30.0f * ease;
+		pose.rLowerArmX = 15.0f - 15.0f * ease;
+		pose.rHandX = 23.0f - 23.0f * ease;
+		pose.rHandY = -5.0f + 5.0f * ease;
+
+		pose.lArmX = -95.0f + 95.0f * ease;
+		pose.lArmY = 13.0f - 13.0f * ease;
+		pose.lArmZ = 75.0f - 75.0f * ease;
+		pose.lLowerArmX = 30.0f - 30.0f * ease;
+		pose.lHandX = -30.0f + 30.0f * ease;
+		pose.lHandY = -33.0f + 33.0f * ease;
+
+		pose.lLegX = 18.0f - 18.0f * ease;
+		pose.rLegX = -15.0f + 15.0f * ease;
+		pose.lKneeX = 26.0f - 26.0f * ease;
+		pose.rKneeX = 28.0f - 28.0f * ease;
+		pose.lFootX = -5.0f + 5.0f * ease;
+		pose.rFootX = -5.0f + 5.0f * ease;
+
+		pose.charY = -0.17f + 0.04f * ease;
+		pose.charZ = -0.96f - 0.04f * ease;
+	}
+
+	parts[HEAD].angleX = pose.headX;
+	parts[UPPER_TORSO].angleX = pose.torsoX;
+	parts[UPPER_TORSO].angleY = pose.torsoY;
+	parts[LOWER_TORSO].angleX = pose.lowerTorsoX;
+
+	parts[RIGHT_UPPER_ARM].angleX = pose.rArmX;
+	parts[RIGHT_UPPER_ARM].angleY = pose.rArmY;
+	parts[RIGHT_UPPER_ARM].angleZ = pose.rArmZ;
+	parts[RIGHT_LOWER_ARM].angleX = pose.rLowerArmX;
+	parts[RIGHT_HAND].angleX = pose.rHandX;
+	parts[RIGHT_HAND].angleY = pose.rHandY;
+	parts[RIGHT_HAND].angleZ = pose.rHandZ;
+
+	parts[LEFT_UPPER_ARM].angleX = pose.lArmX;
+	parts[LEFT_UPPER_ARM].angleY = pose.lArmY;
+	parts[LEFT_UPPER_ARM].angleZ = pose.lArmZ;
+	parts[LEFT_LOWER_ARM].angleX = pose.lLowerArmX;
+	parts[LEFT_HAND].angleX = pose.lHandX;
+	parts[LEFT_HAND].angleY = pose.lHandY;
+	parts[LEFT_HAND].angleZ = pose.lHandZ;
+
+	parts[LEFT_UPPER_LEG].angleX = pose.lLegX;
+	parts[LEFT_LOWER_LEG].angleX = pose.lKneeX;
+	parts[LEFT_FOOT].angleX = pose.lFootX;
+	parts[RIGHT_UPPER_LEG].angleX = pose.rLegX;
+	parts[RIGHT_LOWER_LEG].angleX = pose.rKneeX;
+	parts[RIGHT_FOOT].angleX = pose.rFootX;
+
+	characterZ = pose.charZ;
+	characterY = pose.charY;
+}
+
 void UpdateAnimation() {
 	switch (currentAnimType)
 	{
@@ -2129,6 +2325,9 @@ void UpdateAnimation() {
 	case 8:
 		EnergyBeamAnimation();
 		break;
+	case 9:
+		DualSwordRushAnimation();
+		break;
 	}
 }
 
@@ -2149,21 +2348,6 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 	case WM_TIMER:
 		UpdateAnimation();
 
-		// === NEW: DISPLAY ANGLES IN WINDOW TITLE ===
-		if (currentSceneMode == INTERACT) {
-			char titleBuffer[256];
-			sprintf_s(titleBuffer, "INTERACT MODE | Part ID: %d | Angle X: %.2f | Angle Y: %.2f | Angle Z: %.2f",
-				currentPart,
-				parts[currentPart].angleX,
-				parts[currentPart].angleY,
-				parts[currentPart].angleZ);
-
-			SetWindowTextA(hWnd, titleBuffer); // Update the window title!
-		}
-		else {
-			SetWindowTextA(hWnd, WINDOW_TITLE); // Change it back when not in interact mode
-		}
-		// ===========================================
 		scarfTime += scarfSpeed;
 
 		// === NEW: GUN SHOOTING TIMER LOGIC ===
@@ -2273,35 +2457,6 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				}
 			}
 			break;
-
-			//	currentSceneMode = INTERACT;
-			//	currentPart = HEAD;
-
-			//	cameraZ = -2.0f;
-			//	cameraAngleY = -180.0f;
-			//	lightZ = -3.0f;
-
-			//	break;
-
-			// DEBUG : SIDE VIEW
-			// case 0x30:
-			//	ResetCameraPosition();
-			//	ResetCameraAngle();
-			//	ResetLightPosition();
-			//	ResetToggle();
-			//	ResetModel();
-
-			//	currentSceneMode = INTERACT;
-			//	currentPart = HEAD;
-
-			//	cameraX = 1.0f;
-			//	cameraZ = -1.0f;
-			//	cameraAngleY = 90.0f;
-
-			//	lightX = 2.0f;
-			//	lightZ = -1.0f;
-
-			//	break;
 
 			// ----------------------
 			// CAMERA / LIGHT CONTROL
@@ -2533,7 +2688,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				ResetModel();
 				// Switch to Previous Animation
 				currentAnimType--;
-				if (currentAnimType < 0) currentAnimType = 8; // Loop to the end (1 is Walk)
+				if (currentAnimType < 0) currentAnimType = 9; // Loop to the end (1 is Walk)
 
 				animFrame = 0.0f; // Reset timeline so the new animation starts properly
 				isPlaying = true; // Auto-play when switching
@@ -2563,7 +2718,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				ResetModel();
 				// Switch to Next Animation
 				currentAnimType++;
-				if (currentAnimType > 8) currentAnimType = 0; // Loop back to start (0 is Spear)
+				if (currentAnimType > 9) currentAnimType = 0; // Loop back to start (0 is Spear)
 
 				animFrame = 0.0f; // Reset timeline so the new animation starts properly
 				isPlaying = true; // Auto-play when switching
@@ -2595,7 +2750,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			if (currentSceneMode == WEAPON_CUSTOM)
 			{
 				// Cycle left hand weapons (0 through 4)
-				currentLeftWeapon = (currentLeftWeapon + 1) % 5;
+				currentLeftWeapon = (currentLeftWeapon + 1) % 6;
 			}
 			break;
 
@@ -2919,6 +3074,7 @@ void LoadWeaponTextures()
 	bananaLeafTexture = LoadTexture("Assets/Weapon/BananaLeaf.bmp");
 	bananaLeafHandleTexture = LoadTexture("Assets/Weapon/BananaFanHandle.bmp");
 	goldBananaLeafTexture = LoadTexture("Assets/Weapon/GoldBananaLeaf.bmp");
+	diamondTexture = LoadTexture("Assets/Weapon/diamond.bmp");
 	//Gun
 	blackSilverTexture = LoadTexture("Assets/Weapon/blackSliver.bmp");
 }
@@ -4289,24 +4445,16 @@ void SetupCameraMode()
 {
 	switch (currentCameraMode)
 	{
-	case PERSPECTIVE:
+	case CENTER:
 		SetPerspectiveProjection(60.0f, 1.0f, 0.1f, 100.0f);
-		// Camera (inverse transform)
-		glRotatef(-cameraAngleX, 1.0f, 0.0f, 0.0f);
-		glRotatef(-cameraAngleY, 0.0f, 1.0f, 0.0f);
-		glRotatef(-cameraAngleZ, 0.0f, 0.0f, 1.0f);
-		glTranslatef(-cameraX, -cameraY, -cameraZ);
-		break;
 
-	case ORTHO:
-		SetOrthoProjection(-0.5f, 0.5f, -0.5f, 0.5f, 0.1f, 100.0f);
-		// Camera (inverse transform)
-		glRotatef(-cameraAngleX, 1.0f, 0.0f, 0.0f);
-		glRotatef(-cameraAngleY, 0.0f, 1.0f, 0.0f);
-		glRotatef(-cameraAngleZ, 0.0f, 0.0f, 1.0f);
-		glTranslatef(-cameraX, -cameraY, -cameraZ);
-		break;
+		gluLookAt(
+			0.0f, 0.0f, 0.0f,					// cam position (left side)
+			characterX, characterY, characterZ, // character position
+			0.0f, 1.0f, 0.0f					// up vector
+		);
 
+		break;
 	case LSIDE:
 		SetPerspectiveProjection(60.0f, 1.0f, 0.1f, 100.0f);
 
@@ -4326,6 +4474,23 @@ void SetupCameraMode()
 			0.0f, 1.0f, 0.0f					// up vector
 		);
 
+		break;
+	case PERSPECTIVE:
+		SetPerspectiveProjection(60.0f, 1.0f, 0.1f, 100.0f);
+		// Camera (inverse transform)
+		glRotatef(-cameraAngleX, 1.0f, 0.0f, 0.0f);
+		glRotatef(-cameraAngleY, 0.0f, 1.0f, 0.0f);
+		glRotatef(-cameraAngleZ, 0.0f, 0.0f, 1.0f);
+		glTranslatef(-cameraX, -cameraY, -cameraZ);
+		break;
+
+	case ORTHO:
+		SetOrthoProjection(-0.5f, 0.5f, -0.5f, 0.5f, 0.1f, 100.0f);
+		// Camera (inverse transform)
+		glRotatef(-cameraAngleX, 1.0f, 0.0f, 0.0f);
+		glRotatef(-cameraAngleY, 0.0f, 1.0f, 0.0f);
+		glRotatef(-cameraAngleZ, 0.0f, 0.0f, 1.0f);
+		glTranslatef(-cameraX, -cameraY, -cameraZ);
 		break;
 	}
 }
@@ -4775,35 +4940,33 @@ void DrawGoldPlates(float torsoRadius)
 void DrawSpear(float scale)
 {
 	GLUquadricObj* quad = gluNewQuadric();
-	gluQuadricDrawStyle(quad, GLU_FILL); // Ensure quadrics are solid
 
-	// Enable textures for the quadric shapes!
+	gluQuadricDrawStyle(quad, GLU_FILL);
 	gluQuadricTexture(quad, GL_TRUE);
+	gluQuadricNormals(quad, GLU_SMOOTH); // IMPORTANT
 
 	glPushMatrix();
-
-	// Apply the global scale here!
 	glScalef(scale, scale, scale);
 	glRotatef(-90, 1, 0, 0);
 
-	// Enable 2D Texturing and set base color to white
 	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_NORMALIZE);
 	glColor3f(1.0f, 1.0f, 1.0f);
 
-	// ===== 1. BOTTOM SCREW & SPIRAL (GOLD) =====
-	if (currentBladeIndex == 0)
-	{
-		glBindTexture(GL_TEXTURE_2D, goldenTexture);
-	}
-	else if (currentBladeIndex == 1)
-	{
-		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
-	}
+	// =========================
+	// 1. HANDLE BASE
+	// =========================
+	glBindTexture(GL_TEXTURE_2D,
+		currentBladeIndex == 0 ? goldenTexture : redCoreTexture);
+
 	glPushMatrix();
 	glTranslatef(0, 0, -0.6f);
-	gluCylinder(quad, 0.04, 0.04, 0.6, 15, 1);
+	gluCylinder(quad, 0.04, 0.04, 0.6, 20, 1);
 	glPopMatrix();
 
+	// =========================
+	// 2. SPIRAL (FIXED NORMALS)
+	// =========================
 	float totalHeight = 0.65f;
 	int segments = 150;
 	float totalTurns = 6.0f;
@@ -4812,113 +4975,109 @@ void DrawSpear(float scale)
 
 	glPushMatrix();
 	glTranslatef(0, 0, -0.55f);
+
 	for (int side = 0; side < 2; side++)
 	{
 		glBegin(GL_QUAD_STRIP);
+
 		for (int i = 0; i <= segments; i++)
 		{
 			float t = (float)i / segments;
+			float angle = t * totalTurns * 2.0f * 3.14159f;
+
 			float outerR = 0.18f - (t * 0.10f);
 			float zBase = pow(t, 1.8f) * totalHeight;
-			float angle = t * totalTurns * 2.0f * 3.14159f;
-			float zPos = (side == 0) ? zBase : zBase - thickness;
+			float z = (side == 0) ? zBase : zBase - thickness;
 
-			// Map the texture along the spiral
+			float cx = cos(angle);
+			float cy = sin(angle);
+
+			// === NORMAL (radial outward)
+			float nx = cx;
+			float ny = cy;
+			float nz = 0.0f;
+
+			glNormal3f(nx, ny, nz);
 			glTexCoord2f(t * totalTurns, 0.0f);
-			glVertex3f(cos(angle) * outerR, sin(angle) * outerR, zPos);
+			glVertex3f(cx * outerR, cy * outerR, z);
 
+			glNormal3f(nx, ny, nz);
 			glTexCoord2f(t * totalTurns, 1.0f);
-			glVertex3f(cos(angle) * shaftR, sin(angle) * shaftR, zPos);
+			glVertex3f(cx * shaftR, cy * shaftR, z);
 		}
+
 		glEnd();
 	}
-	glBegin(GL_QUAD_STRIP);
-	for (int i = 0; i <= segments; i++)
-	{
-		float t = (float)i / segments;
-		float outerR = 0.18f - (t * 0.10f);
-		float zBase = pow(t, 1.8f) * totalHeight;
-		float angle = t * totalTurns * 2.0f * 3.14159f;
 
-		glTexCoord2f(t * totalTurns, 0.0f);
-		glVertex3f(cos(angle) * outerR, sin(angle) * outerR, zBase);
-
-		glTexCoord2f(t * totalTurns, 1.0f);
-		glVertex3f(cos(angle) * outerR, sin(angle) * outerR, zBase - thickness);
-	}
-	glEnd();
 	glPopMatrix();
 
+	// =========================
+	// 3. SPIKE END
+	// =========================
 	glPushMatrix();
 	glTranslatef(0, 0, -0.75f);
 	gluCylinder(quad, 0.0, 0.18, 0.2, 20, 1);
 	glPopMatrix();
 
-	// ===== 2. MAIN SILVER SHAFT (SILVER) =====
-	if (currentBladeIndex == 0)
-	{
-		glBindTexture(GL_TEXTURE_2D, sliverTexture);
-	}
-	else if (currentBladeIndex == 1)
-	{
-		glBindTexture(GL_TEXTURE_2D, goldenTexture);
-	}
-	gluCylinder(quad, 0.05, 0.05, 2.5, 15, 1);
+	// =========================
+	// 4. MAIN SHAFT
+	// =========================
+	glBindTexture(GL_TEXTURE_2D,
+		currentBladeIndex == 0 ? sliverTexture : goldenTexture);
 
-	// ===== 3. LEAF DECORATION (GOLD) =====
+	gluCylinder(quad, 0.05, 0.05, 2.5, 20, 1);
 
-	if (currentBladeIndex == 0)
-	{
-		glBindTexture(GL_TEXTURE_2D, goldenTexture);
-	}
-	else if (currentBladeIndex == 1)
-	{
-		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
-	}
+	// =========================
+	// 5. LEAF DECOR
+	// =========================
+	glBindTexture(GL_TEXTURE_2D,
+		currentBladeIndex == 0 ? goldenTexture : redCoreTexture);
+
 	for (int j = 0; j < 2; j++)
 	{
 		for (int i = 0; i < 6; i++)
 		{
 			glPushMatrix();
+
 			glTranslatef(0, 0, 2.5f + (j * 0.1f));
 			glRotatef(i * 60 + (j * 30), 0, 0, 1);
 			glRotatef(25, 1, 0, 0);
-			glScalef(0.6, 1.3, 0.1);
-			gluSphere(quad, 0.18, 12, 12);
+
+			glScalef(0.6f, 1.3f, 0.1f);
+
+			// sphere already has normals via GLU
+			gluSphere(quad, 0.18, 16, 16);
+
 			glPopMatrix();
 		}
 	}
 
-	// ===== 4. THE BLADE (SPEAR BLADE) =====
-	// Check which texture is currently selected
-	if (currentBladeIndex == 0)
-	{
-		glBindTexture(GL_TEXTURE_2D, spearBlade);
-	}
-	else if (currentBladeIndex == 1)
-	{
-		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
-	}
+	// =========================
+	// 6. BLADE
+	// =========================
+	glBindTexture(GL_TEXTURE_2D,
+		currentBladeIndex == 0 ? spearBlade : spearRedBlade);
+
 	glPushMatrix();
 	glTranslatef(0, 0, 2.65f);
 
+	// Base
 	glPushMatrix();
 	glScalef(1.5, 0.4, 0.7);
 	gluSphere(quad, 0.15, 20, 20);
 	glPopMatrix();
 
+	// Tip
 	glPushMatrix();
 	glTranslatef(0, 0, 0.05f);
-	glScalef(2.2, 0.25, 1.0);
 	gluCylinder(quad, 0.12, 0.0, 1.2, 20, 1);
 	glPopMatrix();
 
 	glPopMatrix();
 
-	// Turn textures back off so it doesn't affect other untextured models
 	glDisable(GL_TEXTURE_2D);
+	glPopMatrix();
 
-	glPopMatrix(); // End of global scale
 	gluDeleteQuadric(quad);
 }
 
@@ -5107,6 +5266,9 @@ void DrawFishSword(float scale) {
 	gluQuadricDrawStyle(quad, GLU_FILL);
 	gluQuadricTexture(quad, GL_TRUE); // CRITICAL: Allows spheres/cylinders to use textures
 
+	// ADD THIS: Automatically calculates smooth lighting normals for all Spheres and Cylinders!
+	gluQuadricNormals(quad, GLU_SMOOTH);
+
 	glPushMatrix();
 	glScalef(scale, scale, scale);
 
@@ -5115,12 +5277,10 @@ void DrawFishSword(float scale) {
 	glColor3f(1.0f, 1.0f, 1.0f); // Set to white so textures aren't tinted
 
 	// --- 1. Main Fish Body ---
-	if (currentBladeIndex == 0)
-	{
+	if (currentBladeIndex == 0) {
 		glBindTexture(GL_TEXTURE_2D, fishBodyTexture);
 	}
-	else if (currentBladeIndex == 1)
-	{
+	else if (currentBladeIndex == 1) {
 		glBindTexture(GL_TEXTURE_2D, fireWheelRing);
 	}
 	glPushMatrix();
@@ -5130,12 +5290,10 @@ void DrawFishSword(float scale) {
 
 	// --- 2. Upper Back ---
 	glBindTexture(GL_TEXTURE_2D, fishUpperBackTexture);
-	if (currentBladeIndex == 0)
-	{
+	if (currentBladeIndex == 0) {
 		glBindTexture(GL_TEXTURE_2D, fishUpperBackTexture);
 	}
-	else if (currentBladeIndex == 1)
-	{
+	else if (currentBladeIndex == 1) {
 		glBindTexture(GL_TEXTURE_2D, fishGoldBackTexture);
 	}
 	glPushMatrix();
@@ -5145,12 +5303,10 @@ void DrawFishSword(float scale) {
 	glPopMatrix();
 
 	// --- 3. Long Tail Stalk (Handle) ---
-	if (currentBladeIndex == 0)
-	{
+	if (currentBladeIndex == 0) {
 		glBindTexture(GL_TEXTURE_2D, fishTailTexture);
 	}
-	else if (currentBladeIndex == 1)
-	{
+	else if (currentBladeIndex == 1) {
 		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
 	}
 	glPushMatrix();
@@ -5188,19 +5344,33 @@ void DrawFishSword(float scale) {
 	glPopMatrix();
 
 	// --- 5. Tail Fin ---
-	if (currentBladeIndex == 0)
-	{
+	if (currentBladeIndex == 0) {
 		glBindTexture(GL_TEXTURE_2D, fishTailTexture);
 	}
-	else if (currentBladeIndex == 1)
-	{
+	else if (currentBladeIndex == 1) {
 		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
 	}
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glPushMatrix();
 	glTranslatef(0.0f, 1.9f, 0.0f);
+
+	// Right Side of the Tail Fin
+	glNormal3f(-1.0f, 0.0f, 0.0f);
 	glBegin(GL_TRIANGLES);
 	// Top Tail (Mapping texture coordinates manually for triangles)
+	glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, 0.0f, 0.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.5f, 0.4f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 0.3f, 0.0f);
+	// Bottom Tail
+	glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, 0.0f, 0.0f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 0.3f, 0.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.5f, -0.4f);
+	glEnd();
+
+	// Left Side of the Tail Fin (Duplicated to catch light from the other side)
+	glNormal3f(1.0f, 0.0f, 0.0f);
+	glBegin(GL_TRIANGLES);
+	// Top Tail
 	glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, 0.0f, 0.0f);
 	glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.5f, 0.4f);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 0.3f, 0.0f);
@@ -5212,15 +5382,24 @@ void DrawFishSword(float scale) {
 	glPopMatrix();
 
 	// --- 6. Dorsal Fin ---
-	if (currentBladeIndex == 0)
-	{
+	if (currentBladeIndex == 0) {
 		glBindTexture(GL_TEXTURE_2D, fishFinTexture);
 	}
-	else if (currentBladeIndex == 1)
-	{
+	else if (currentBladeIndex == 1) {
 		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
 	}
 	glPushMatrix();
+
+	// Right Side of Dorsal Fin
+	glNormal3f(-1.0f, 0.0f, 0.0f);
+	glBegin(GL_TRIANGLES);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, -0.6f, 0.25f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.6f, 0.25f);
+	glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, 0.1f, 0.5f);
+	glEnd();
+
+	// Left Side of Dorsal Fin (Duplicated to catch light from the other side)
+	glNormal3f(1.0f, 0.0f, 0.0f);
 	glBegin(GL_TRIANGLES);
 	glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, -0.6f, 0.25f);
 	glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.6f, 0.25f);
@@ -5229,12 +5408,10 @@ void DrawFishSword(float scale) {
 	glPopMatrix();
 
 	// --- 7. Pectoral Fins ---
-	if (currentBladeIndex == 0)
-	{
+	if (currentBladeIndex == 0) {
 		glBindTexture(GL_TEXTURE_2D, fishFinTexture);
 	}
-	else if (currentBladeIndex == 1)
-	{
+	else if (currentBladeIndex == 1) {
 		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
 	}
 	// Right
@@ -5274,12 +5451,8 @@ void DrawBananaLeafFan(float scale) {
 
 	// Handle Base / Ring (Now Textured!)
 	glEnable(GL_TEXTURE_2D); // Make sure textures are ENABLED, not disabled!
-	if (currentBladeIndex == 0) {
-		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
-	}
-	else if (currentBladeIndex == 1) {
-		glBindTexture(GL_TEXTURE_2D, goldenTexture);
-	}
+	glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+
 	glColor3f(1.0f, 1.0f, 1.0f); // Reset to white so texture shows its true colors
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, -0.015f);
@@ -5339,7 +5512,7 @@ void DrawBananaLeafFan(float scale) {
 		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
 	}
 	else if (currentBladeIndex == 1) {
-		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+		glBindTexture(GL_TEXTURE_2D, diamondTexture);
 	}
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glPushMatrix();
@@ -5369,6 +5542,7 @@ void DrawBananaLeafFan(float scale) {
 	float profileY[NUM_POINTS] = { 0.50f, 0.80f, 1.20f, 1.55f, 1.80f, 1.70f };
 
 	// A. FRONT FACE 
+	glNormal3f(0, 0, 1);
 	glBegin(GL_QUAD_STRIP);
 	for (int i = 0; i < NUM_POINTS; i++) {
 		float texV = (float)i / (NUM_POINTS - 1);
@@ -5378,6 +5552,7 @@ void DrawBananaLeafFan(float scale) {
 	glEnd();
 
 	// B. BACK FACE
+	glNormal3f(0, 0, -1);
 	glBegin(GL_QUAD_STRIP);
 	for (int i = 0; i < NUM_POINTS; i++) {
 		float texV = (float)i / (NUM_POINTS - 1);
@@ -5392,13 +5567,14 @@ void DrawBananaLeafFan(float scale) {
 	// ==========================================
 	glEnable(GL_TEXTURE_2D); // Make sure this is ENABLED!
 	if (currentBladeIndex == 0) {
-		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+		glBindTexture(GL_TEXTURE_2D, bananaLeafTexture);
 	}
 	else if (currentBladeIndex == 1) {
 		glBindTexture(GL_TEXTURE_2D, goldenTexture);
 	}
 	glColor3f(1.0f, 1.0f, 1.0f);
 
+	glNormal3f(1, 0, 0);
 	glBegin(GL_QUAD_STRIP);
 	// Trace up the Right Side
 	for (int i = 0; i < NUM_POINTS; i++) {
@@ -5406,6 +5582,8 @@ void DrawBananaLeafFan(float scale) {
 		glTexCoord2f(0.0f, texV); glVertex3f(profileX[i], profileY[i], thickness);
 		glTexCoord2f(1.0f, texV); glVertex3f(profileX[i], profileY[i], -thickness);
 	}
+
+	glNormal3f(-1, 0, 0);
 	// Trace down the Left Side
 	for (int i = NUM_POINTS - 1; i >= 0; i--) {
 		float texV = (float)i / (NUM_POINTS - 1);
@@ -5529,7 +5707,7 @@ void DrawMagnumGun(float scale, bool isShooting) {
 
 		// Map texture: 'u' goes from 0 to 1 across the loop
 		float u = (float)i / 10.0f;
-
+		glNormal3f(cos(angle), sin(angle), 0.0f);
 		glTexCoord2f(u, 0.0f); glVertex3f(px, py, 0.005f);
 		glTexCoord2f(u, 1.0f); glVertex3f(px, py, -0.005f);
 	}
@@ -6198,8 +6376,8 @@ void DrawHand(float side)
 	glPushMatrix();
 	glTranslatef(baseRadius * 0.3f, 0.0f, baseRadius * 0.8f);
 	if ((currentSceneMode == ANIMATION && currentAnimType != 6 && currentAnimType != 7 && currentAnimType != 8)
-		|| (currentLeftWeapon != 0 && currentLeftWeapon != 5)
-		|| (currentRightWeapon != 0 && currentRightWeapon != 5))
+		|| (currentLeftWeapon != 0 && currentLeftWeapon != 6)
+		|| (currentRightWeapon != 0 && currentRightWeapon != 6))
 		glRotatef(side * -100.0f, 0.0f, 0.0f, 1.0f);
 	glRotatef(-70.0f, 0.0f, 1.0f, 0.0f);
 	// Added currentGrip! (Multiplied by 0.5 so thumb bends a bit less)
@@ -6211,8 +6389,8 @@ void DrawHand(float side)
 	glPushMatrix();
 	glTranslatef(-(baseRadius / 2 + indexLength / 3), 0.0f, fingerSpacing);
 	if ((currentSceneMode == ANIMATION && currentAnimType != 6 && currentAnimType != 7 && currentAnimType != 8)
-		|| (currentLeftWeapon != 0 && currentLeftWeapon != 5)
-		|| (currentRightWeapon != 0 && currentRightWeapon != 5))
+		|| (currentLeftWeapon != 0 && currentLeftWeapon != 6)
+		|| (currentRightWeapon != 0 && currentRightWeapon != 6))
 		glRotatef(side * -90.0f, 0.0f, 0.0f, 1.0f);
 	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 	// Added currentGrip!
@@ -6224,8 +6402,8 @@ void DrawHand(float side)
 	glPushMatrix();
 	glTranslatef(-(baseRadius / 2 + middleLength / 2), 0.0f, 0.0f);
 	if ((currentSceneMode == ANIMATION && currentAnimType != 6 && currentAnimType != 7 && currentAnimType != 8)
-		|| (currentLeftWeapon != 0 && currentLeftWeapon != 5)
-		|| (currentRightWeapon != 0 && currentRightWeapon != 5))
+		|| (currentLeftWeapon != 0 && currentLeftWeapon != 6)
+		|| (currentRightWeapon != 0 && currentRightWeapon != 6))
 		glRotatef(side * -90.0f, 0.0f, 0.0f, 1.0f);
 	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 	// Added currentGrip!
@@ -6237,8 +6415,8 @@ void DrawHand(float side)
 	glPushMatrix();
 	glTranslatef(-(baseRadius / 2 + ringLength / 3), 0.0f, -fingerSpacing);
 	if ((currentSceneMode == ANIMATION && currentAnimType != 6 && currentAnimType != 7 && currentAnimType != 8)
-		|| (currentLeftWeapon != 0 && currentLeftWeapon != 5)
-		|| (currentRightWeapon != 0 && currentRightWeapon != 5))
+		|| (currentLeftWeapon != 0 && currentLeftWeapon != 6)
+		|| (currentRightWeapon != 0 && currentRightWeapon != 6))
 		glRotatef(side * -90.0f, 0.0f, 0.0f, 1.0f);
 	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 	// Added currentGrip!
@@ -6250,8 +6428,8 @@ void DrawHand(float side)
 	glPushMatrix();
 	glTranslatef(-(baseRadius / 2), 0.0f, -fingerSpacing * 2);
 	if ((currentSceneMode == ANIMATION && currentAnimType != 6 && currentAnimType != 7 && currentAnimType != 8) 
-		|| (currentLeftWeapon != 0 && currentLeftWeapon != 5) 
-		|| (currentRightWeapon != 0 && currentRightWeapon != 5))
+		|| (currentLeftWeapon != 0 && currentLeftWeapon != 6) 
+		|| (currentRightWeapon != 0 && currentRightWeapon != 6))
 		glRotatef(side * -90.0f, 0.0f, 0.0f, 1.0f);
 	glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
 	// Added currentGrip!
@@ -6305,7 +6483,7 @@ void DrawArm(float side)
 	// NEW WEAPON LOGIC (Works for both sides)
 	// ==========================================
 	// Determine which weapon index to use
-	int handWeapon = (side > 0.0f) ? (currentRightWeapon % 5) : (currentLeftWeapon % 5);
+	int handWeapon = (side > 0.0f) ? (currentRightWeapon % 6) : (currentLeftWeapon % 6);
 
 	if (handWeapon != 0) {
 		glPushMatrix();
@@ -6350,6 +6528,12 @@ void DrawArm(float side)
 			// If dual wielding, both guns will flash
 			DrawMagnumGun(1.0f, isGunShooting);
 			break;
+
+		case 5: // Kirito Sword
+			glTranslatef(0.015f, side * 0.007f, 0.0f);
+			DrawDualSwordInHand(side);
+			break;
+
 		}
 
 		glPopMatrix();
@@ -6593,7 +6777,7 @@ void DrawFoot()
 	// END Ankle
 
 	// NEW: Wheels appear on states 5, 6, 7, 8, and 9!
-	if (currentRightWeapon >= 5 && currentRightWeapon <= 9) {
+	if (currentRightWeapon >= 6 && currentRightWeapon <= 12) {
 		glDisable(GL_TEXTURE_2D); // Turn off skin texture for the fiery colors
 
 		glPushMatrix();
@@ -6747,14 +6931,27 @@ void DrawLeg(float side, float torsoRadius)
 
 void DrawHead(float headBaseRadius, float headBaseHeight)
 {
-	// Head
+	bool isChibi = (currentCharacterMode == CHIBI_MODE);
+
 	glPushMatrix();
+
+	if (isChibi)
+	{
+		// smaller, slimmer handsome face
+		glScalef(0.92f, 0.95f, 0.92f);
+	}
+
 	DrawHeadBase(headBaseRadius, headBaseHeight);
 	DrawUpperHead();
 	DrawLowerHead();
 
 	// Eyes
 	glPushMatrix();
+	if (isChibi)
+	{
+		glTranslatef(0.0f, -0.003f, 0.0f);
+		glScalef(0.88f, 0.88f, 1.0f);
+	}
 	DrawLeftEye();
 	DrawRightEye();
 	glPopMatrix();
@@ -6762,6 +6959,11 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 
 	// Eyelashes
 	glPushMatrix();
+	if (isChibi)
+	{
+		glTranslatef(0.0f, -0.003f, 0.0f);
+		glScalef(0.90f, 0.90f, 1.0f);
+	}
 	DrawLeftEyelash();
 	DrawRightEyelash();
 	glPopMatrix();
@@ -6769,6 +6971,11 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 
 	// Mouth
 	glPushMatrix();
+	if (isChibi)
+	{
+		glTranslatef(0.0f, -0.006f, 0.006f);
+		glScalef(0.78f, 0.78f, 1.0f);
+	}
 	DrawMouth();
 	glPopMatrix();
 	// END Mouth
@@ -6780,6 +6987,8 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 
 	// Left Ear Ring
 	glPushMatrix();
+	if (isChibi)
+		glTranslatef(-0.018f, 0.006f, 0.0f);
 	DrawEarRing(-1.0f);
 	glPopMatrix();
 	// END Left Ear Ring
@@ -6791,12 +7000,19 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 	glPushMatrix();
 	glTranslatef(headBaseRadius * 1.2f, 0.0f, 0.0f);
 	DrawRightEar();
+	if (isChibi)
+		glTranslatef(0.018f, 0.006f, 0.0f);
 	DrawEarRing(1.0f);
 	glPopMatrix();
 	// END Right Ear
 
 	// Nose
 	glPushMatrix();
+	if (isChibi)
+	{
+		glTranslatef(0.0f, -0.001f, 0.010f);
+		glScalef(0.88f, 0.88f, 0.88f);
+	}
 	DrawNose();
 	glPopMatrix();
 	// END Nose
@@ -7179,9 +7395,9 @@ void DrawPants(float torsoRadius)
 	glDisable(GL_TEXTURE_2D);
 }
 
-// ***********************
-// CUSTOMIZATION FUNCTIONS
-// ***********************
+// *********************************
+// CUSTOMIZATION FUNCTIONS [EFFECTS]
+// *********************************
 
 void DrawWaterElementHeadJewel(float headBaseRadius)
 {
@@ -8285,6 +8501,212 @@ void DrawEnergyBeamAnimationEffect()
 	glPopAttrib();
 }
 
+void DrawSwordTrailArc(float radius, float thickness, float startDeg, float endDeg, float alpha)
+{
+	const int segments = 32;
+
+	glBegin(GL_TRIANGLE_STRIP);
+	for (int i = 0; i <= segments; ++i)
+	{
+		float t = (float)i / (float)segments;
+		float ang = DegreeToRadian(startDeg + (endDeg - startDeg) * t);
+		float cs = cosf(ang);
+		float sn = sinf(ang);
+
+		glColor4f(0.10f, 0.55f, 1.0f, 0.0f);
+		glVertex3f(cs * (radius + thickness), sn * (radius + thickness), 0.0f);
+
+		glColor4f(0.70f, 0.95f, 1.0f, alpha);
+		glVertex3f(cs * radius, sn * radius, 0.0f);
+	}
+	glEnd();
+}
+
+void DrawSwordImpactBurst(float radius, float alpha)
+{
+	for (int i = 0; i < 8; ++i)
+	{
+		float angle = DegreeToRadian((float)i * 45.0f);
+		float x = cosf(angle);
+		float y = sinf(angle);
+
+		glColor4f(0.65f, 0.95f, 1.0f, alpha);
+		glBegin(GL_LINES);
+		glVertex3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(x * radius, y * radius, 0.0f);
+		glEnd();
+	}
+
+	glColor4f(0.85f, 0.98f, 1.0f, alpha * 0.85f);
+	DrawSphere(quadric, radius * 0.22f, 14, 14);
+}
+
+void DrawDualSwordAnimationEffect()
+{
+	if (!isPlaying || currentSceneMode != ANIMATION || currentAnimType != 9) return;
+
+	float maxFrames = 96.0f;
+	float t = Clamp(animFrame / maxFrames, 0.0f, 1.0f);
+
+	glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glDepthMask(GL_FALSE);
+	glDisable(GL_CULL_FACE);
+
+	glPushMatrix();
+	glTranslatef(characterX, characterY + 0.12f, characterZ + 0.10f);
+
+	// Rush aura under the body
+	if (t > 0.12f && t < 0.82f)
+	{
+		float rushT = (t - 0.12f) / 0.70f;
+		float pulse = 0.55f + 0.45f * sinf(rushT * PI * 10.0f);
+		float spread = 0.18f + rushT * 0.24f;
+
+		glColor4f(0.10f, 0.45f, 1.0f, 0.12f + pulse * 0.06f);
+		glBegin(GL_TRIANGLE_STRIP);
+		glVertex3f(-spread, -0.15f, -0.10f);
+		glVertex3f(-spread * 0.55f, -0.03f, 0.04f);
+		glVertex3f(0.0f, -0.17f, -0.14f);
+		glVertex3f(0.0f, -0.01f, 0.10f);
+		glVertex3f(spread, -0.15f, -0.10f);
+		glVertex3f(spread * 0.55f, -0.03f, 0.04f);
+		glEnd();
+
+		for (int i = 0; i < 5; ++i)
+		{
+			float lane = -0.16f + i * 0.08f;
+			glColor4f(0.20f, 0.78f, 1.0f, 0.10f + pulse * 0.05f);
+			glBegin(GL_LINES);
+			glVertex3f(lane, -0.10f + fabsf(lane) * 0.08f, -0.08f);
+			glVertex3f(lane * 0.35f, 0.12f, 0.28f);
+			glEnd();
+		}
+	}
+
+	// Right-hand opening slash: layered crescent with a sharp core
+	if (t > 0.24f && t < 0.48f)
+	{
+		float phaseT = (t - 0.24f) / 0.24f;
+		float alpha = 0.50f + 0.30f * sinf(phaseT * PI);
+		float sweep = -48.0f + 135.0f * phaseT;
+
+		glPushMatrix();
+		glTranslatef(0.13f, 0.03f, 0.03f);
+		glRotatef(-26.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(sweep, 0.0f, 0.0f, 1.0f);
+		DrawSwordTrailArc(0.20f, 0.14f, -78.0f, 32.0f, alpha * 0.55f);
+		DrawSwordTrailArc(0.17f, 0.08f, -72.0f, 26.0f, alpha);
+
+		glColor4f(0.88f, 0.98f, 1.0f, alpha * 0.90f);
+		glBegin(GL_LINES);
+		glVertex3f(-0.02f, -0.02f, 0.0f);
+		glVertex3f(0.24f, 0.10f, 0.0f);
+		glEnd();
+		glPopMatrix();
+
+		if (phaseT > 0.68f)
+		{
+			float burstFade = (1.0f - phaseT) * 1.15f;
+			glPushMatrix();
+			glTranslatef(0.24f, -0.04f, 0.09f);
+			glRotatef(22.0f, 0.0f, 1.0f, 0.0f);
+			DrawSwordImpactBurst(0.10f + phaseT * 0.10f, burstFade);
+
+			glColor4f(0.30f, 0.80f, 1.0f, burstFade * 0.45f);
+			glBegin(GL_TRIANGLE_FAN);
+			glVertex3f(0.0f, 0.0f, 0.0f);
+			for (int i = 0; i <= 20; ++i)
+			{
+				float a = ((float)i / 20.0f) * PI * 2.0f;
+				glVertex3f(cosf(a) * (0.14f + phaseT * 0.05f), sinf(a) * (0.05f + phaseT * 0.03f), 0.0f);
+			}
+			glEnd();
+			glPopMatrix();
+		}
+	}
+
+	// Left-hand follow-through: wider reverse crescent that crosses the body
+	if (t > 0.50f && t < 0.76f)
+	{
+		float phaseT = (t - 0.50f) / 0.26f;
+		float alpha = 0.56f + 0.24f * sinf(phaseT * PI);
+		float sweep = 60.0f - 162.0f * phaseT;
+
+		glPushMatrix();
+		glTranslatef(-0.11f, 0.05f, 0.01f);
+		glRotatef(18.0f, 0.0f, 1.0f, 0.0f);
+		glRotatef(sweep, 0.0f, 0.0f, 1.0f);
+		DrawSwordTrailArc(0.24f, 0.15f, -28.0f, 104.0f, alpha * 0.50f);
+		DrawSwordTrailArc(0.20f, 0.09f, -18.0f, 94.0f, alpha);
+
+		glColor4f(0.90f, 0.99f, 1.0f, alpha * 0.90f);
+		glBegin(GL_LINES);
+		glVertex3f(0.02f, -0.01f, 0.0f);
+		glVertex3f(-0.26f, 0.11f, 0.0f);
+		glEnd();
+		glPopMatrix();
+
+		if (phaseT > 0.66f)
+		{
+			float burstFade = (1.0f - phaseT) * 1.10f;
+			glPushMatrix();
+			glTranslatef(-0.20f, -0.02f, 0.11f);
+			glRotatef(-18.0f, 0.0f, 1.0f, 0.0f);
+			DrawSwordImpactBurst(0.11f + phaseT * 0.11f, burstFade);
+
+			glColor4f(0.35f, 0.86f, 1.0f, burstFade * 0.38f);
+			glBegin(GL_TRIANGLE_FAN);
+			glVertex3f(0.0f, 0.0f, 0.0f);
+			for (int i = 0; i <= 20; ++i)
+			{
+				float a = ((float)i / 20.0f) * PI * 2.0f;
+				glVertex3f(cosf(a) * (0.15f + phaseT * 0.05f), sinf(a) * (0.06f + phaseT * 0.02f), 0.0f);
+			}
+			glEnd();
+			glPopMatrix();
+		}
+	}
+
+	// Crossing flash between the two slashes
+	if (t > 0.44f && t < 0.58f)
+	{
+		float phaseT = (t - 0.44f) / 0.14f;
+		float alpha = sinf(phaseT * PI) * 0.65f;
+
+		glPushMatrix();
+		glTranslatef(0.01f, 0.04f, 0.08f);
+		glRotatef(-35.0f, 0.0f, 0.0f, 1.0f);
+		glColor4f(0.82f, 0.98f, 1.0f, alpha);
+		glBegin(GL_QUADS);
+		glVertex3f(-0.22f, -0.02f, 0.0f);
+		glVertex3f(-0.18f, 0.02f, 0.0f);
+		glVertex3f(0.22f, 0.02f, 0.0f);
+		glVertex3f(0.18f, -0.02f, 0.0f);
+		glEnd();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(0.00f, 0.03f, 0.07f);
+		glRotatef(38.0f, 0.0f, 0.0f, 1.0f);
+		glColor4f(0.44f, 0.86f, 1.0f, alpha * 0.65f);
+		glBegin(GL_QUADS);
+		glVertex3f(-0.20f, -0.018f, 0.0f);
+		glVertex3f(-0.16f, 0.018f, 0.0f);
+		glVertex3f(0.20f, 0.018f, 0.0f);
+		glVertex3f(0.16f, -0.018f, 0.0f);
+		glEnd();
+		glPopMatrix();
+	}
+
+	glPopMatrix();
+	glPopAttrib();
+}
+
+
 // ----------------------------------------------------
 
 // ==============
@@ -8295,26 +8717,38 @@ void DrawCharacter()
 {
 	bool isChibi = (currentCharacterMode == CHIBI_MODE);
 
-	// Torso
-	float torsoRadius = isChibi ? 0.05f : 0.06f;
-	float torsoHeight = isChibi ? 0.024f : 0.03f;
+	// handsome / tall mode proportions
+	float torsoRadius = isChibi ? 0.052f : 0.06f;
+	float torsoHeight = isChibi ? 0.042f : 0.03f;
+
+	float neckRadius = isChibi ? 0.017f : 0.02f;
+	float neckHeight = isChibi ? 0.078f : 0.065f;
+
+	float headBaseRadius = isChibi ? 0.082f : 0.10f;
+	float headBaseHeight = isChibi ? 0.040f : 0.05f;
+
+	float torsoArmsOffsetX = isChibi ? 0.090f : 0.095f;
+	float torsoLegOffsetX = 0.04f;
+
 	glPushMatrix();
 
-	// Upper Torso
+	// =========================
+	// UPPER TORSO
+	// =========================
 	glPushMatrix();
 	PartRotation& upperTorso = parts[UPPER_TORSO];
 	glRotatef(upperTorso.angleX, 1.0f, 0.0f, 0.0f);
 	glRotatef(upperTorso.angleY, 0.0f, 1.0f, 0.0f);
 	glRotatef(upperTorso.angleZ, 0.0f, 0.0f, 1.0f);
+
 	DrawTorsoPart(torsoRadius, torsoHeight);
 
-	// Red Vest [COSTUME]
+	// Red Vest
 	glPushMatrix();
 	ApplyTint(GetElementClothTint());
 	DrawVest(torsoRadius, torsoHeight);
 	ResetTint();
 	glPopMatrix();
-	// END Red Vest [COSTUME]
 
 	glPushMatrix();
 	ApplyTint(GetElementAccentTint());
@@ -8329,25 +8763,19 @@ void DrawCharacter()
 		glPopMatrix();
 	}
 
-	// Neck
-	float neckRadius = 0.02f;
-	float neckHeight = 0.065f;
+	// =========================
+	// NECK
+	// =========================
 	glPushMatrix();
-	glTranslatef(0.0f, (torsoHeight / 2 + neckHeight * 1.1f), 0.0f);
+	glTranslatef(0.0f, (torsoHeight / 2 + neckHeight * (isChibi ? 0.82f : 1.1f)), 0.0f);
 	DrawNeck(neckRadius, neckHeight);
 
-	//// Neck Ring
-	// glPushMatrix();
-	// glTranslatef(0.0f, neckHeight * 0.05f, 0.0f);
-	// DrawNeckRing(neckRadius);
-	// glPopMatrix();
-	//// END Neck Ring
-
-	// Head
-	float headBaseRadius = isChibi ? 0.13f : 0.1f;
-	float headBaseHeight = isChibi ? 0.065f : 0.05f;
+	// =========================
+	// HEAD
+	// =========================
 	glPushMatrix();
 	glTranslatef(0.0f, neckHeight + headBaseHeight * (isChibi ? 0.95f : 0.8f), 0.0f);
+
 	PartRotation& head = parts[HEAD];
 	glRotatef(head.angleX, 1.0f, 0.0f, 0.0f);
 	glRotatef(head.angleY, 0.0f, 1.0f, 0.0f);
@@ -8356,8 +8784,13 @@ void DrawCharacter()
 
 	// Hair
 	glPushMatrix();
-	glTranslatef(0.0f, headBaseRadius * 0.5f, 0.0f);
+	glTranslatef(0.0f, headBaseRadius * (isChibi ? 0.46f : 0.5f), 0.0f);
 	ApplyTint(GetElementHairTint());
+
+	if (isChibi)
+	{
+		glScalef(0.92f, 0.96f, 0.92f);
+	}
 	DrawHair(headBaseRadius);
 	ResetTint();
 
@@ -8370,12 +8803,13 @@ void DrawCharacter()
 
 	// Hair Ribbon
 	glPushMatrix();
-	glTranslatef(0.0f, headBaseRadius, 0.0f);
+	glTranslatef(0.0f, headBaseRadius * (isChibi ? 0.92f : 1.0f), 0.0f);
 	ApplyTint(GetElementClothTint());
+	if (isChibi)
+		glScalef(0.90f, 0.92f, 0.90f);
 	DrawHairRibbons(headBaseRadius);
 	ResetTint();
 	glPopMatrix();
-	// END Hair Ribbon
 
 	glPopMatrix();
 	// END Hair
@@ -8392,29 +8826,30 @@ void DrawCharacter()
 	glPopMatrix();
 	// END Neck
 
+	// =========================
+	// ARMS
+	// =========================
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, skinTexture);
 
-	// Arms
 	glPushMatrix();
-	glTranslatef(0.0f, torsoHeight, 0.0f);
-
-	float torsoArmsOffsetX = isChibi ? 0.075f : 0.095f;
+	glTranslatef(0.0f, torsoHeight * (isChibi ? 0.92f : 1.0f), 0.0f);
 
 	// Left Arm
 	glPushMatrix();
 	glTranslatef(-torsoArmsOffsetX, 0.0f, 0.0f);
+	if (isChibi)
+		glScalef(0.92f, 1.20f, 0.92f);
 	DrawArm(-1.0f);
 	glPopMatrix();
-	// END Left Arm
 
 	// Right Arm
 	glPushMatrix();
 	glTranslatef(torsoArmsOffsetX, 0.0f, 0.0f);
-
+	if (isChibi)
+		glScalef(0.92f, 1.20f, 0.92f);
 	DrawArm(1.0f);
 	glPopMatrix();
-	// END Right Arm
 
 	glPopMatrix();
 	// END Arms
@@ -8424,12 +8859,12 @@ void DrawCharacter()
 
 	glDisable(GL_TEXTURE_2D);
 
-	// --------------------
-
+	// =========================
+	// LOWER TORSO
+	// =========================
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, skinTexture);
 
-	// Lower Torso
 	glPushMatrix();
 	glTranslatef(0.0f, -torsoHeight, 0.0f);
 	PartRotation& lowerTorso = parts[LOWER_TORSO];
@@ -8437,10 +8872,10 @@ void DrawCharacter()
 	glRotatef(lowerTorso.angleY, 0.0f, 1.0f, 0.0f);
 	glRotatef(lowerTorso.angleZ, 0.0f, 0.0f, 1.0f);
 	glScalef(1.0f, -1.0f, 1.0f);
+
 	DrawTorsoPart(torsoRadius, torsoHeight);
 
 	glDisable(GL_TEXTURE_2D);
-
 	glScalef(1.0f, -1.0f, 1.0f);
 
 	// Gold Plate
@@ -8455,49 +8890,6 @@ void DrawCharacter()
 	glPopMatrix();
 
 	glDisable(GL_TEXTURE_2D);
-	// END Gold Plate
-
-	float sideScarfLength = 0.38f;
-	float sideScarfAmplitude = 0.05f;
-	float sideScarfFrequency = 30.0f;
-	float sideScarfPhase = -5.0f;
-	float sideScarfThickness = 0.02f;
-	float sideScarfOffset = 0.0f;
-	int sideScarfSegments = 40;
-
-	// Left Scarf
-	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, -torsoRadius);
-	glRotatef(-180.0f, 0.0f, 1.0f, 0.0f);
-	DrawSideScarf(
-		sideScarfLength,	// length
-		sideScarfAmplitude, // amplitude (curl strength)
-		sideScarfFrequency, // frequency (tight curls)
-		sideScarfPhase,		// phase
-		sideScarfThickness, // thickness
-		sideScarfOffset,	// offset
-		sideScarfSegments	// segments
-	);
-
-	glPopMatrix();
-	// END Left Scarf
-
-	// Right Scarf
-	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, -torsoRadius);
-	glRotatef(180.0f, 0.0f, 0.0f, 1.0f);
-	glRotatef(-180.0f, 0.0f, 1.0f, 0.0f);
-	DrawSideScarf(
-		sideScarfLength,	// length
-		sideScarfAmplitude, // amplitude (curl strength)
-		sideScarfFrequency, // frequency (tight curls)
-		sideScarfPhase,		// phase
-		sideScarfThickness, // thickness
-		sideScarfOffset,	// offset
-		sideScarfSegments	// segments
-	);
-	glPopMatrix();
-	// END Right Scarf
 
 	// Upper Pant
 	float upperPantRadius = 0.034f;
@@ -8508,92 +8900,42 @@ void DrawCharacter()
 
 	// Waistband
 	glPushMatrix();
-	glTranslatef(0.0f, -torsoHeight * 2.5f, 0.0f);
+	glTranslatef(0.0f, -0.03f * 2.5f, 0.0f);
 	glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
 	DrawEnclosedCylinder(quadric, upperPantRadius, upperPantRadius, upperPantHeight, SLICES, STACKS);
 	glPopMatrix();
-	// END Waistband
 
 	glDisable(GL_TEXTURE_2D);
-	// END Upper Pant
 
+	// =========================
+	// LEGS
+	// =========================
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, skinTexture);
 
-	// Legs
 	glPushMatrix();
 	glTranslatef(0.0f, -torsoHeight * 2.5f, 0.0f);
-
-	float torsoLegOffsetX = isChibi ? 0.032f : 0.04f;
 
 	// Left Leg
 	glPushMatrix();
 	glTranslatef(-torsoLegOffsetX, 0.0f, 0.0f);
 	DrawLeg(-1.0f, torsoRadius);
-
-	glDisable(GL_TEXTURE_2D);
-
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, brownClothTexture);
-
-	//// Pant Leg [LEFT]
-	// glPushMatrix();
-	// glTranslatef(0.0f, 0.0f, -torsoRadius * 0.65f);
-	// glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-	// glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
-	// DrawPantLeg(-1.0f, torsoRadius);
-	// glPopMatrix();
-	//// END Pant Leg [LEFT]
-
 	glPopMatrix();
-	// END Left Leg
-
-	glDisable(GL_TEXTURE_2D);
-
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, skinTexture);
 
 	// Right Leg
 	glPushMatrix();
 	glTranslatef(torsoLegOffsetX, 0.0f, 0.0f);
-	// glRotatef(-30.0f, 1.0f, 0.0f, 0.0f);
-	// glRotatef(-30.0f, 0.0f, 0.0f, 1.0f);
 	DrawLeg(1.0f, torsoRadius);
-
-	glDisable(GL_TEXTURE_2D);
-
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, brownClothTexture);
-
-	//// Pant Leg [RIGHT]
-	// glPushMatrix();
-	// glTranslatef(0.0f, 0.0f, -torsoRadius * 0.65f);
-	// glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-	// glRotatef(-90.0f, 0.0f, 1.0f, 0.0f);
-	// DrawPantLeg(1.0f, torsoRadius);
-	// glPopMatrix();
-	//// END Pant Leg [RIGHT]
-
-	glDisable(GL_TEXTURE_2D);
-
 	glPopMatrix();
-	// END Right Leg
 
 	glPopMatrix();
 	// END Legs
 
-	//// Belt
-	// glPushMatrix();
-	// glTranslatef(0.0f, -torsoHeight * 2.0f, 0.0f);
-	// DrawBelt(torsoRadius);
-	// glPopMatrix();
-	//// END Belt
-
 	glPopMatrix();
 	// END Lower Torso
 
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
-	// END Torso
 }
 
 // ------------------
@@ -8705,6 +9047,7 @@ void Display()
 	// END ZhaLing
 
 	DrawEnergyBeamAnimationEffect();
+	DrawDualSwordAnimationEffect();
 
 	glDisable(GL_LIGHT0);
 	glDisable(GL_LIGHTING);
