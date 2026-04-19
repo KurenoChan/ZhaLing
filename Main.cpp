@@ -308,6 +308,7 @@ GLuint fireOuterTexture;
 GLuint fireWheelBladeTexture;
 GLuint fireWheelRing;
 GLuint redCoreTexture;
+GLuint diamondTexture;
 GLuint blueFireCoreTexture;
 GLuint blueFireOuterTexture;
 GLuint fishFinTexture;
@@ -2919,6 +2920,7 @@ void LoadWeaponTextures()
 	bananaLeafTexture = LoadTexture("Assets/Weapon/BananaLeaf.bmp");
 	bananaLeafHandleTexture = LoadTexture("Assets/Weapon/BananaFanHandle.bmp");
 	goldBananaLeafTexture = LoadTexture("Assets/Weapon/GoldBananaLeaf.bmp");
+	diamondTexture = LoadTexture("Assets/Weapon/diamond.bmp");
 	//Gun
 	blackSilverTexture = LoadTexture("Assets/Weapon/blackSliver.bmp");
 }
@@ -5278,7 +5280,7 @@ void DrawBananaLeafFan(float scale) {
 		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
 	}
 	else if (currentBladeIndex == 1) {
-		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+		glBindTexture(GL_TEXTURE_2D, blackSilverTexture);
 	}
 	glColor3f(1.0f, 1.0f, 1.0f); // Reset to white so texture shows its true colors
 	glPushMatrix();
@@ -5339,7 +5341,7 @@ void DrawBananaLeafFan(float scale) {
 		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
 	}
 	else if (currentBladeIndex == 1) {
-		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+		glBindTexture(GL_TEXTURE_2D, diamondTexture);
 	}
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glPushMatrix();
@@ -5392,7 +5394,7 @@ void DrawBananaLeafFan(float scale) {
 	// ==========================================
 	glEnable(GL_TEXTURE_2D); // Make sure this is ENABLED!
 	if (currentBladeIndex == 0) {
-		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+		glBindTexture(GL_TEXTURE_2D, bananaLeafTexture);
 	}
 	else if (currentBladeIndex == 1) {
 		glBindTexture(GL_TEXTURE_2D, goldenTexture);
