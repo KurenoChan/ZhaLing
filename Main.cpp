@@ -138,18 +138,20 @@ struct PartRotation
 // ===========
 // Weapon States
 // ===========
-int currentWeapon = 0; // 0 = None, 1 = Spear, 2 = Sword (Add more later)
-const int TOTAL_WEAPONS = 6; // Update this number as you add more weapons
+int currentRightWeapon = 0; // 0 = None, 1 = Spear, 2 = Sword (Add more later)
+int currentLeftWeapon = 0; // 0 = Empty, 1 = Spear, 2 = Fish, 3 = Leaf, 4 = Gun
+const int TOTAL_WEAPONS = 10; // Update this number as you add more weapons
 float wheelRotationAngle = 0.0f; // Tracks the current spin position
 float wheelRotationSpeed = 0.0f; // Tracks how fast it is spinning
 int currentBladeIndex = 0;
 const int TOTAL_BLADE_TEXTURES = 2; // 0 = Normal Blade, 1 = Red Blade
-
+bool isGunShooting = false;
+int shootTimer = 0;
 // =========================
 // Weapon ANIMATION VARIABLES
 // =========================
 int currentAnimType = 0;
-const int TOTAL_ANIMS = 4; // We will just have 1 (Spear Thrust) for now
+const int TOTAL_ANIMS = 6; // We will just have 1 (Spear Thrust) for now
 bool isPlaying = false;    // Tracks if the animation is playing or paused
 float animFrame = 0.0f;    // Tracks the current frame of the animation
 bool isLooping = true;     // Tracks if the animation should loop
@@ -302,11 +304,17 @@ GLuint fireOuterTexture;
 GLuint fireWheelBladeTexture;
 GLuint fireWheelRing;
 GLuint redCoreTexture;
+GLuint blueFireCoreTexture;
+GLuint blueFireOuterTexture;
 GLuint fishFinTexture;
 GLuint fishTailTexture;
 GLuint fishBodyTexture;
 GLuint fishUpperBackTexture;
 GLuint fishEyeWhiteTexture;
+GLuint fishGoldBackTexture;
+GLuint bananaLeafTexture;
+GLuint bananaLeafHandleTexture;
+GLuint goldBananaLeafTexture;
 
 // ---------
 // Constants
@@ -515,9 +523,12 @@ float Clamp(float v, float minV, float maxV)
 
 void WalkAnimation() {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
-
-	ResetModel();
-
+	// ==========================================
+	// FORCE UNEQUIP WEAPON
+	// This tells DrawArm to use 'case 0' (No Weapon)
+	// ==========================================
+	currentRightWeapon = 0;
+	isGunShooting = false; // Safety: make sure flash is off
 	isLooping = true; // Force walk cycles to loop!
 	animFrame += (1.0f * animSpeed);
 
@@ -1333,6 +1344,286 @@ void FirewheelAnimation() {
 	characterX = charX; characterY = charY; characterZ = charZ;
 }
 
+void BalletAnimation() {
+	if (!isPlaying || currentSceneMode != ANIMATION) return;
+
+	animFrame += (1.0f * animSpeed);
+	float maxFrames = 120.0f; // Slightly longer for a graceful, slow dance!
+
+	if (animFrame > maxFrames) {
+		if (isLooping) animFrame = 0.0f;
+		else {
+			animFrame = maxFrames;
+			isPlaying = false;
+		}
+	}
+
+	float t = animFrame / maxFrames;
+
+	// ==========================================
+	// 1. DECLARE ALL VARIABLES (Set to 0)
+	// ==========================================
+	float headX = 0.0f, headY = 0.0f, headZ = 0.0f;
+	float uTorsoX = 0.0f, uTorsoY = 0.0f, uTorsoZ = 0.0f;
+	float lTorsoX = 0.0f, lTorsoY = 0.0f, lTorsoZ = 0.0f;
+	float lArmX = 0.0f, lArmY = 0.0f, lArmZ = 0.0f;
+	float lLowerArmX = 0.0f, lLowerArmY = 0.0f;
+	float lHandX = 0.0f, lHandY = 0.0f, lHandZ = 0.0f;
+	float rArmX = 0.0f, rArmY = 0.0f, rArmZ = 0.0f;
+	float rLowerArmX = 0.0f, rLowerArmY = 0.0f;
+	float rHandX = 0.0f, rHandY = 0.0f, rHandZ = 0.0f;
+	float lLegX = 0.0f, lLegY = 0.0f, lLegZ = 0.0f;
+	float lKneeX = 0.0f;
+	float lFootX = 0.0f, lFootZ = 0.0f;
+	float rLegX = 0.0f, rLegY = 0.0f, rLegZ = 0.0f;
+	float rKneeX = 0.0f;
+	float rFootX = 0.0f, rFootZ = 0.0f;
+	float charX = 0.0f, charY = 0.0f, charZ = 0.0f;
+
+	// ==========================================
+	// 2. ANIMATION PHASES
+	// ==========================================
+
+	// ---------------------------------------------------------
+	// PHASE 1: Preparation / Relevé (0% to 30%)
+	// Rise up on tiptoes, softly lift arms
+	// ---------------------------------------------------------
+	if (t <= 0.3f) {
+		float phaseT = t / 0.3f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		// Head tilts up proudly
+		headX = ease * -15.0f;
+
+		// Arms lift softly to the front/sides
+		lArmX = ease * -45.0f; lLowerArmX = ease * -10.0f;
+		rArmX = ease * -45.0f; rLowerArmX = ease * -10.0f;
+
+		// Up on toes! (Both feet point down)
+		lFootX = ease * 30.0f;
+		rFootX = ease * 30.0f;
+		charY = ease * 0.05f; // Lift entire body slightly
+	}
+
+	// ---------------------------------------------------------
+	// PHASE 2: Extend into Arabesque (30% to 60%)
+	// Lean forward, right leg shoots back, arms spread wide
+	// ---------------------------------------------------------
+	else if (t <= 0.6f) {
+		float phaseT = (t - 0.3f) / 0.3f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		// Start from Phase 1 peaks
+		headX = -15.0f + (ease * (5.0f - (-15.0f))); // Look forward
+
+		// Torso leans elegantly forward
+		uTorsoX = ease * 35.0f;
+		lTorsoX = ease * 15.0f;
+
+		// Left arm reaches gracefully forward, right arm reaches slightly back
+		lArmX = -45.0f + (ease * (-90.0f - (-45.0f)));
+		rArmX = -45.0f + (ease * (20.0f - (-45.0f))); rArmY = ease * 40.0f;
+
+		// Left leg stays straight on tiptoe, right leg lifts high in the back
+		lFootX = 30.0f;
+		rLegX = ease * -75.0f; // Lift leg way back!
+		rKneeX = ease * 5.0f;  // Keep it mostly straight
+		rFootX = 30.0f + (ease * (45.0f - 30.0f)); // Point toes even harder
+
+		charY = 0.05f + (ease * (-0.02f - 0.05f)); // Dip slightly to balance
+	}
+
+	// ---------------------------------------------------------
+	// PHASE 3: Hold the Pose (60% to 80%)
+	// Hold the Arabesque
+	// ---------------------------------------------------------
+	else if (t <= 0.8f) {
+		headX = 5.0f;
+		uTorsoX = 35.0f; lTorsoX = 15.0f;
+		lArmX = -90.0f; lLowerArmX = -10.0f;
+		rArmX = 20.0f; rArmY = 40.0f; rLowerArmX = -10.0f;
+		lFootX = 30.0f;
+		rLegX = -75.0f; rKneeX = 5.0f; rFootX = 45.0f;
+		charY = -0.02f;
+	}
+
+	// ---------------------------------------------------------
+	// PHASE 4: Graceful Recovery (80% to 100%)
+	// Lower leg, drop heels, return to standing
+	// ---------------------------------------------------------
+	else {
+		float phaseT = (t - 0.8f) / 0.2f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+
+		headX = 5.0f - (ease * 5.0f);
+		uTorsoX = 35.0f - (ease * 35.0f); lTorsoX = 15.0f - (ease * 15.0f);
+		lArmX = -90.0f - (ease * -90.0f); lLowerArmX = -10.0f - (ease * -10.0f);
+		rArmX = 20.0f - (ease * 20.0f); rArmY = 40.0f - (ease * 40.0f); rLowerArmX = -10.0f - (ease * -10.0f);
+		lFootX = 30.0f - (ease * 30.0f);
+		rLegX = -75.0f - (ease * -75.0f); rKneeX = 5.0f - (ease * 5.0f); rFootX = 45.0f - (ease * 45.0f);
+		charY = -0.02f - (ease * -0.02f);
+	}
+
+	// ==========================================
+	// 3. APPLY VARIABLES TO PARTS
+	// ==========================================
+	parts[HEAD].angleX = headX; parts[HEAD].angleY = headY; parts[HEAD].angleZ = headZ;
+	parts[UPPER_TORSO].angleX = uTorsoX; parts[UPPER_TORSO].angleY = uTorsoY; parts[UPPER_TORSO].angleZ = uTorsoZ;
+	parts[LOWER_TORSO].angleX = lTorsoX; parts[LOWER_TORSO].angleY = lTorsoY; parts[LOWER_TORSO].angleZ = lTorsoZ;
+	parts[LEFT_UPPER_ARM].angleX = lArmX; parts[LEFT_UPPER_ARM].angleY = lArmY; parts[LEFT_UPPER_ARM].angleZ = lArmZ;
+	parts[LEFT_LOWER_ARM].angleX = lLowerArmX; parts[LEFT_LOWER_ARM].angleY = lLowerArmY;
+	parts[LEFT_HAND].angleX = lHandX; parts[LEFT_HAND].angleY = lHandY; parts[LEFT_HAND].angleZ = lHandZ;
+	parts[RIGHT_UPPER_ARM].angleX = rArmX; parts[RIGHT_UPPER_ARM].angleY = rArmY; parts[RIGHT_UPPER_ARM].angleZ = rArmZ;
+	parts[RIGHT_LOWER_ARM].angleX = rLowerArmX; parts[RIGHT_LOWER_ARM].angleY = rLowerArmY;
+	parts[RIGHT_HAND].angleX = rHandX; parts[RIGHT_HAND].angleY = rHandY; parts[RIGHT_HAND].angleZ = rHandZ;
+	parts[LEFT_UPPER_LEG].angleX = lLegX; parts[LEFT_UPPER_LEG].angleY = lLegY; parts[LEFT_UPPER_LEG].angleZ = lLegZ;
+	parts[LEFT_LOWER_LEG].angleX = lKneeX;
+	parts[LEFT_FOOT].angleX = lFootX; parts[LEFT_FOOT].angleZ = lFootZ;
+	parts[RIGHT_UPPER_LEG].angleX = rLegX; parts[RIGHT_UPPER_LEG].angleY = rLegY; parts[RIGHT_UPPER_LEG].angleZ = rLegZ;
+	parts[RIGHT_LOWER_LEG].angleX = rKneeX;
+	parts[RIGHT_FOOT].angleX = rFootX; parts[RIGHT_FOOT].angleZ = rFootZ;
+	characterX = charX; characterY = charY; characterZ = charZ;
+}
+
+void GunShootAnimation() {
+	// 1. SAFETY & INITIALIZATION
+	if (!isPlaying || currentSceneMode != ANIMATION) {
+		isGunShooting = false;
+		if (currentRightWeapon == 4) currentRightWeapon = 0;
+		return;
+	}
+
+	currentRightWeapon = 4; // Force Magnum to be equipped
+
+	float maxFrames = 90.0f;
+	animFrame += (1.0f * animSpeed);
+
+	// 2. LOOP LOGIC: Jump back to Phase 2 (Aiming) instead of 0
+	if (animFrame > maxFrames) {
+		if (isLooping) {
+			animFrame = 0.2f * maxFrames; // Restarts at the "Aiming" stance
+		}
+		else {
+			animFrame = maxFrames;
+			isPlaying = false;
+			isGunShooting = false;
+			currentRightWeapon = 0;
+			return;
+		}
+	}
+
+	float t = animFrame / maxFrames;
+
+	// 3. SHOOTING FLASH LOGIC
+	if (t >= 0.20f && t <= 0.30f) {
+		isGunShooting = true;
+		shootTimer = 2; // Prevents WM_TIMER from killing the flash instantly
+	}
+	else {
+		if (shootTimer <= 0) isGunShooting = false;
+	}
+
+	// 4. BONE TRANSFORM VARIABLES
+	float headX = 0.0f, headY = 0.0f, headZ = 0.0f;
+	float uTorsoX = 0.0f, uTorsoY = 0.0f, uTorsoZ = 0.0f;
+	float lTorsoX = 0.0f, lTorsoY = 0.0f, lTorsoZ = 0.0f;
+	float lArmX = 0.0f, lArmY = 0.0f, lArmZ = 0.0f;
+	float lLowerArmX = 0.0f, lLowerArmY = 0.0f;
+	float lHandY = 0.0f;
+	float rArmX = 0.0f, rArmY = 0.0f, rArmZ = 0.0f;
+	float rLowerArmX = 0.0f, rLowerArmY = 0.0f;
+	float rHandX = 0.0f, rHandY = 0.0f;
+	float lLegX = 0.0f, lKneeX = 0.0f, lFootX = 0.0f;
+	float rLegX = 0.0f, rKneeX = 0.0f, rFootX = 0.0f;
+
+	// 5. ANIMATION PHASES
+	// Ease-in formula: $ease = \frac{1 - \cos(phaseT \cdot \pi)}{2}$
+
+	if (t <= 0.2f) {
+		// PHASE 1: Draw & Aim (Only plays on first run)
+		float phaseT = t / 0.2f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+		uTorsoX = ease * -5.0f;
+		lArmX = ease * 55.0f; lArmY = ease * 80.0f;
+		lLowerArmX = ease * -50.0f; lLowerArmY = ease * 75.0f;
+		lHandY = ease * 25.0f;
+		rArmY = ease * 90.0f;
+		rLowerArmX = ease * 70.0f; rLowerArmY = ease * 5.0f;
+		rHandX = ease * 20.0f;
+		lLegX = ease * -25.0f; lKneeX = ease * 20.0f; lFootX = ease * 5.0f;
+		rLegX = ease * 20.0f; rKneeX = ease * 15.0f; rFootX = ease * -5.0f;
+	}
+	else if (t <= 0.3f) {
+		// PHASE 2: Shooting Stance (Hold Aim)
+		uTorsoX = -5.0f;
+		lArmX = 55.0f; lArmY = 80.0f;
+		lLowerArmX = -50.0f; lLowerArmY = 75.0f;
+		lHandY = 25.0f;
+		rArmY = 90.0f;
+		rLowerArmX = 70.0f; rLowerArmY = 5.0f;
+		rHandX = 20.0f;
+		lLegX = -25.0f; lKneeX = 20.0f; lFootX = 5.0f;
+		rLegX = 20.0f; rKneeX = 15.0f; rFootX = -5.0f;
+	}
+	else if (t <= 0.4f) {
+		// PHASE 3: Recoil Snap
+		float phaseT = (t - 0.3f) / 0.1f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+		uTorsoX = -5.0f + (ease * 5.0f);
+		lArmX = 55.0f; lArmY = 80.0f;
+		lLowerArmX = -50.0f; lLowerArmY = 75.0f;
+		lHandY = 25.0f;
+		rArmX = ease * 10.0f;
+		rArmY = 90.0f;
+		rLowerArmX = 70.0f;
+		rLowerArmY = 5.0f + (ease * 10.0f);
+		rHandX = 20.0f;
+		rHandY = ease * 10.0f;
+		lLegX = -25.0f; lKneeX = 20.0f; lFootX = 5.0f;
+		rLegX = 20.0f; rKneeX = 15.0f; rFootX = -5.0f;
+	}
+	else if (t <= 0.6f) {
+		// PHASE 4: Hold Recoil
+		uTorsoX = 0.0f;
+		lArmX = 55.0f; lArmY = 80.0f;
+		lLowerArmX = -50.0f; lLowerArmY = 75.0f;
+		lHandY = 25.0f;
+		rArmX = 10.0f; rArmY = 90.0f;
+		rLowerArmX = 70.0f; rLowerArmY = 15.0f;
+		rHandX = 20.0f; rHandY = 10.0f;
+		lLegX = -25.0f; lKneeX = 20.0f; lFootX = 5.0f;
+		rLegX = 20.0f; rKneeX = 15.0f; rFootX = -5.0f;
+	}
+	else {
+		// PHASE 5: Recovery (Return to AIMING pose)
+		float phaseT = (t - 0.6f) / 0.4f;
+		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+		uTorsoX = 0.0f + (ease * -5.0f);
+		lArmX = 55.0f; lArmY = 80.0f;
+		lLowerArmX = -50.0f; lLowerArmY = 75.0f;
+		lHandY = 25.0f;
+		rArmX = 10.0f + (ease * -10.0f);
+		rArmY = 90.0f;
+		rLowerArmX = 70.0f;
+		rLowerArmY = 15.0f + (ease * -10.0f);
+		rHandX = 20.0f;
+		rHandY = 10.0f + (ease * -10.0f);
+		lLegX = -25.0f; lKneeX = 20.0f; lFootX = 5.0f;
+		rLegX = 20.0f; rKneeX = 15.0f; rFootX = -5.0f;
+	}
+
+	// 6. APPLY TO CHARACTER
+	parts[UPPER_TORSO].angleX = uTorsoX;
+	parts[LEFT_UPPER_ARM].angleX = lArmX; parts[LEFT_UPPER_ARM].angleY = lArmY;
+	parts[LEFT_LOWER_ARM].angleX = lLowerArmX; parts[LEFT_LOWER_ARM].angleY = lLowerArmY;
+	parts[LEFT_HAND].angleY = lHandY;
+	parts[RIGHT_UPPER_ARM].angleX = rArmX; parts[RIGHT_UPPER_ARM].angleY = rArmY;
+	parts[RIGHT_LOWER_ARM].angleX = rLowerArmX; parts[RIGHT_LOWER_ARM].angleY = rLowerArmY;
+	parts[RIGHT_HAND].angleX = rHandX; parts[RIGHT_HAND].angleY = rHandY;
+	parts[LEFT_UPPER_LEG].angleX = lLegX; parts[LEFT_LOWER_LEG].angleX = lKneeX; parts[LEFT_FOOT].angleX = lFootX;
+	parts[RIGHT_UPPER_LEG].angleX = rLegX; parts[RIGHT_LOWER_LEG].angleX = rKneeX; parts[RIGHT_FOOT].angleX = rFootX;
+}
+
 void BackFlipAnimation()
 {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
@@ -1474,6 +1765,7 @@ void BackFlipAnimation()
 	characterZ = charZ;
 	characterY = charY;
 }
+
 
 void SixSevenAnimation()
 {
@@ -1793,12 +2085,18 @@ void UpdateAnimation() {
 		FirewheelAnimation();
 		break;
 	case 4:
-		BackFlipAnimation();
+		BalletAnimation();
 		break;
 	case 5:
-		SixSevenAnimation();
+		GunShootAnimation();
 		break;
 	case 6:
+		BackFlipAnimation();
+		break;
+	case 7:
+		SixSevenAnimation();
+		break;
+	case 8:
 		EnergyBeamAnimation();
 		break;
 	}
@@ -1837,6 +2135,14 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 		}
 		// ===========================================
 		scarfTime += scarfSpeed;
+
+		// === NEW: GUN SHOOTING TIMER LOGIC ===
+		if (isGunShooting) {
+			shootTimer--; // Count down 1 frame
+			if (shootTimer <= 0) {
+				isGunShooting = false; // Turn off the fire effect when timer hits 0
+			}
+		}
 		InvalidateRect(hWnd, NULL, FALSE); // redraw
 		break;
 
@@ -1880,8 +2186,8 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			ResetModel();
 
 			currentSceneMode = ANIMATION;
-			currentAnimType = 0; // Back flip
-			isPlaying = true; // Start paused
+			currentAnimType = 0;
+			isPlaying = true;
 			animFrame = 0.0f;  // Reset to the beginning
 			break;
 
@@ -1904,6 +2210,12 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			//	ResetLightPosition();
 			//	ResetToggle();
 			//	ResetModel();
+		case 0x46: // 'F' Key - SHOOT MAGNUM
+			if (currentSceneMode == WEAPON_CUSTOM) {
+				isGunShooting = true;
+				shootTimer = 8; // 33 frames * 30ms = ~1 second
+			}
+			break;
 		case 0x4D: // 'M' Key
 			if (currentSceneMode == WEAPON_CUSTOM)
 			{
@@ -2181,7 +2493,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				ResetModel();
 				// Switch to Previous Animation
 				currentAnimType--;
-				if (currentAnimType < 0) currentAnimType = 6; // Loop to the end (1 is Walk)
+				if (currentAnimType < 0) currentAnimType = 8; // Loop to the end (1 is Walk)
 
 				animFrame = 0.0f; // Reset timeline so the new animation starts properly
 				isPlaying = true; // Auto-play when switching
@@ -2211,7 +2523,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				ResetModel();
 				// Switch to Next Animation
 				currentAnimType++;
-				if (currentAnimType > 6) currentAnimType = 0; // Loop back to start (0 is Spear)
+				if (currentAnimType > 8) currentAnimType = 0; // Loop back to start (0 is Spear)
 
 				animFrame = 0.0f; // Reset timeline so the new animation starts properly
 				isPlaying = true; // Auto-play when switching
@@ -2235,8 +2547,15 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 				break;
 			case WEAPON_CUSTOM:
 				// Cycle weapons ONLY when in Weapon Mode
-				currentWeapon = (currentWeapon + 1) % TOTAL_WEAPONS;
+				currentRightWeapon = (currentRightWeapon + 1) % TOTAL_WEAPONS;
 				break;
+			}
+			break;
+		case 0x47: // [G] Key pressed
+			if (currentSceneMode == WEAPON_CUSTOM)
+			{
+				// Cycle left hand weapons (0 through 4)
+				currentLeftWeapon = (currentLeftWeapon + 1) % 5;
 			}
 			break;
 
@@ -2547,12 +2866,19 @@ void LoadWeaponTextures()
 	fishBodyTexture = LoadTexture("Assets/Weapon/FishBody.bmp");
 	fishUpperBackTexture = LoadTexture("Assets/Weapon/FishUpperBack.bmp");
 	fishEyeWhiteTexture = LoadTexture("Assets/Weapon/FishEyeWhite.bmp");
+	fishGoldBackTexture = LoadTexture("Assets/Weapon/FishGoldBack.bmp");
 	//Fire Wheel Texture
 	fireCoreTexture = LoadTexture("Assets/Weapon/fireCore.bmp");
 	fireOuterTexture = LoadTexture("Assets/Weapon/fireOuter.bmp");
 	fireWheelBladeTexture = LoadTexture("Assets/Weapon/FireWheel_Blade.bmp");
 	fireWheelRing = LoadTexture("Assets/Weapon/Firewheel_ring.bmp");
 	redCoreTexture = LoadTexture("Assets/Weapon/RedCoreGlow.bmp");
+	blueFireCoreTexture = LoadTexture("Assets/Weapon/BlueFireCore.bmp");
+	blueFireOuterTexture = LoadTexture("Assets/Weapon/BlueFireOuter.bmp");
+	//BananaLeaf
+	bananaLeafTexture = LoadTexture("Assets/Weapon/BananaLeaf.bmp");
+	bananaLeafHandleTexture = LoadTexture("Assets/Weapon/BananaFanHandle.bmp");
+	goldBananaLeafTexture = LoadTexture("Assets/Weapon/GoldBananaLeaf.bmp");
 }
 
 void InitTextures()
@@ -3993,8 +4319,14 @@ void DrawSpear(float scale)
 	glColor3f(1.0f, 1.0f, 1.0f);
 
 	// ===== 1. BOTTOM SCREW & SPIRAL (GOLD) =====
-	glBindTexture(GL_TEXTURE_2D, goldenTexture);
-
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+	}
 	glPushMatrix();
 	glTranslatef(0, 0, -0.6f);
 	gluCylinder(quad, 0.04, 0.04, 0.6, 15, 1);
@@ -4051,11 +4383,26 @@ void DrawSpear(float scale)
 	glPopMatrix();
 
 	// ===== 2. MAIN SILVER SHAFT (SILVER) =====
-	glBindTexture(GL_TEXTURE_2D, sliverTexture);
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, sliverTexture);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+	}
 	gluCylinder(quad, 0.05, 0.05, 2.5, 15, 1);
 
 	// ===== 3. LEAF DECORATION (GOLD) =====
-	glBindTexture(GL_TEXTURE_2D, goldenTexture);
+	
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+	}
 	for (int j = 0; j < 2; j++)
 	{
 		for (int i = 0; i < 6; i++)
@@ -4128,7 +4475,14 @@ void DrawWindFireWheel(float size) {
 	glEnable(GL_TEXTURE_2D);
 
 	// --- 1. THE MAIN RING (Bronze) ---
-	glBindTexture(GL_TEXTURE_2D, fireWheelRing);
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, fireWheelRing);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+	}
 	glColor3f(1.0f, 1.0f, 1.0f); // Reset to white so texture shows its true color
 
 	glPushMatrix();
@@ -4162,7 +4516,14 @@ void DrawWindFireWheel(float size) {
 		}
 
 		// A. OUTER GOLDEN FRAME
-		glBindTexture(GL_TEXTURE_2D, fireWheelBladeTexture);
+		if (currentBladeIndex == 0)
+		{
+			glBindTexture(GL_TEXTURE_2D, fireWheelBladeTexture);
+		}
+		else if (currentBladeIndex == 1)
+		{
+			glBindTexture(GL_TEXTURE_2D, fireWheelRing);
+		}
 		glColor3f(1.0f, 1.0f, 1.0f);
 
 		// Front Face
@@ -4201,7 +4562,14 @@ void DrawWindFireWheel(float size) {
 		glEnd();
 
 		// B. THE RED CORE GLOW
-		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+		if (currentBladeIndex == 0)
+		{
+			glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+		}
+		else if (currentBladeIndex == 1)
+		{
+			glBindTexture(GL_TEXTURE_2D, spearRedBlade);
+		}
 		glColor3f(1.0f, 1.0f, 1.0f); // Reset color
 		glPushMatrix();
 		glTranslatef(0.15f, 0.1f, 0.0f);
@@ -4222,12 +4590,26 @@ void DrawWindFireWheel(float size) {
 		glScalef(pulse, pulse, pulse);
 
 		// Core of the flame
-		glBindTexture(GL_TEXTURE_2D, fireCoreTexture);
+		if (currentBladeIndex == 0)
+		{
+			glBindTexture(GL_TEXTURE_2D, fireCoreTexture);
+		}
+		else if (currentBladeIndex == 1)
+		{
+			glBindTexture(GL_TEXTURE_2D, blueFireCoreTexture);
+		}
 		glColor3f(1.0f, 1.0f, 1.0f);
 		gluSphere(quad, 0.25, 20, 20);
 
 		// Outer flames shooting outwards
-		glBindTexture(GL_TEXTURE_2D, fireOuterTexture);
+		if (currentBladeIndex == 0)
+		{
+			glBindTexture(GL_TEXTURE_2D, fireOuterTexture);
+		}
+		else if (currentBladeIndex == 1)
+		{
+			glBindTexture(GL_TEXTURE_2D, blueFireOuterTexture);
+		}
 		glColor3f(1.0f, 1.0f, 1.0f);
 
 		for (int i = 0; i < 4; i++) {
@@ -4248,31 +4630,57 @@ void DrawWindFireWheel(float size) {
 	gluDeleteQuadric(quad);
 }
 
-void DrawFishSword(float scale)
-{
+void DrawFishSword(float scale) {
 	GLUquadricObj* quad = gluNewQuadric();
-	gluQuadricDrawStyle(quad, GLU_FILL); // Always solid
+	gluQuadricDrawStyle(quad, GLU_FILL);
+	gluQuadricTexture(quad, GL_TRUE); // CRITICAL: Allows spheres/cylinders to use textures
 
 	glPushMatrix();
 	glScalef(scale, scale, scale);
 
-	// --- 1. Main Fish Body (Light Blue Base) ---
-	glColor3f(0.7f, 0.85f, 0.95f);
+	// Enable texturing for the whole model
+	glEnable(GL_TEXTURE_2D);
+	glColor3f(1.0f, 1.0f, 1.0f); // Set to white so textures aren't tinted
+
+	// --- 1. Main Fish Body ---
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, fishBodyTexture);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, fireWheelRing);
+	}
 	glPushMatrix();
 	glScalef(0.12f, 1.5f, 0.35f);
 	gluSphere(quad, 1.0, 30, 30);
 	glPopMatrix();
 
-	// --- 2. Upper Back (Darker Blue Top) ---
-	glColor3f(0.2f, 0.4f, 0.7f);
+	// --- 2. Upper Back ---
+	glBindTexture(GL_TEXTURE_2D, fishUpperBackTexture);
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, fishUpperBackTexture);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, fishGoldBackTexture);
+	}
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, 0.08f);
 	glScalef(0.11f, 1.45f, 0.3f);
 	gluSphere(quad, 1.0, 20, 20);
 	glPopMatrix();
 
-	// --- 3. Long Tail Stalk (The Handle!) ---
-	glColor3f(0.2f, 0.4f, 0.7f);
+	// --- 3. Long Tail Stalk (Handle) ---
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, fishTailTexture);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
+	}
 	glPushMatrix();
 	glTranslatef(0.0f, 1.4f, 0.0f);
 	glScalef(0.04f, 0.7f, 0.08f);
@@ -4281,77 +4689,473 @@ void DrawFishSword(float scale)
 
 	// --- 4. Eyes ---
 	// Right eye
-	glColor3f(0.8f, 0.1f, 0.1f);
 	glPushMatrix();
 	glTranslatef(0.07f, -1.25f, 0.05f);
+	glBindTexture(GL_TEXTURE_2D, redCoreTexture);
 	gluSphere(quad, 0.05, 10, 10);
-	glColor3f(1.0f, 0.8f, 0.0f); // Yellow ring
+
+	glDisable(GL_TEXTURE_2D); // Disable for the ring
+	glColor3f(1.0f, 0.8f, 0.0f);
 	glRotatef(90, 0, 1, 0);
 	gluCylinder(quad, 0.06, 0.06, 0.02, 10, 1);
+	glEnable(GL_TEXTURE_2D); // Re-enable
 	glPopMatrix();
 
 	// Left eye
-	glColor3f(0.8f, 0.1f, 0.1f);
 	glPushMatrix();
 	glTranslatef(-0.07f, -1.25f, 0.05f);
+	glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+	glColor3f(1.0f, 1.0f, 1.0f);
 	gluSphere(quad, 0.05, 10, 10);
+
+	glDisable(GL_TEXTURE_2D);
 	glColor3f(1.0f, 0.8f, 0.0f);
 	glRotatef(-90, 0, 1, 0);
 	gluCylinder(quad, 0.06, 0.06, 0.02, 10, 1);
+	glEnable(GL_TEXTURE_2D);
 	glPopMatrix();
 
 	// --- 5. Tail Fin ---
-	glColor3f(0.2f, 0.4f, 0.7f);
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, fishTailTexture);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
+	}
+	glColor3f(1.0f, 1.0f, 1.0f);
 	glPushMatrix();
 	glTranslatef(0.0f, 1.9f, 0.0f);
 	glBegin(GL_TRIANGLES);
-	// Top Tail Fluke
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.5f, 0.4f);
-	glVertex3f(0.0f, 0.3f, 0.0f);
-	// Bottom Tail Fluke
-	glVertex3f(0.0f, 0.0f, 0.0f);
-	glVertex3f(0.0f, 0.3f, 0.0f);
-	glVertex3f(0.0f, 0.5f, -0.4f);
+	// Top Tail (Mapping texture coordinates manually for triangles)
+	glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, 0.0f, 0.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.5f, 0.4f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 0.3f, 0.0f);
+	// Bottom Tail
+	glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, 0.0f, 0.0f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 0.3f, 0.0f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.5f, -0.4f);
 	glEnd();
 	glPopMatrix();
 
-	// --- 6. Dorsal Fin (Top/Back) ---
-	glColor3f(0.2f, 0.4f, 0.7f);
+	// --- 6. Dorsal Fin ---
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, fishFinTexture);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
+	}
 	glPushMatrix();
 	glBegin(GL_TRIANGLES);
-	glVertex3f(0.0f, -0.6f, 0.25f);
-	glVertex3f(0.0f, 0.6f, 0.25f);
-	glVertex3f(0.0f, 0.1f, 0.5f);
+	glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, -0.6f, 0.25f);
+	glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.6f, 0.25f);
+	glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, 0.1f, 0.5f);
 	glEnd();
 	glPopMatrix();
 
-	// --- 7. Pectoral Fins (The "Hands") ---
-	// Right Fin (+X)
-	glColor3f(0.7f, 0.85f, 0.95f);
+	// --- 7. Pectoral Fins ---
+	if (currentBladeIndex == 0)
+	{
+		glBindTexture(GL_TEXTURE_2D, fishFinTexture);
+	}
+	else if (currentBladeIndex == 1)
+	{
+		glBindTexture(GL_TEXTURE_2D, spearRedBlade);
+	}
+	// Right
 	glPushMatrix();
 	glTranslatef(0.11f, -0.8f, -0.05f);
-	glRotatef(-15, 0, 0, 1);
-	glRotatef(-180, 1, 0, 0);
+	glRotatef(-15, 0, 0, 1); glRotatef(-180, 1, 0, 0);
 	glScalef(0.02f, 0.3f, 0.15f);
-	glTranslatef(0.0f, -1.0f, 0.0f); // Pivot point fix
+	glTranslatef(0.0f, -1.0f, 0.0f);
 	gluSphere(quad, 1.0, 10, 10);
 	glPopMatrix();
 
-	// Left Fin (-X)
+	// Left
 	glPushMatrix();
 	glTranslatef(-0.11f, -0.8f, -0.05f);
-	glRotatef(15, 0, 0, 1);
-	glRotatef(-180, 1, 0, 0);
+	glRotatef(15, 0, 0, 1); glRotatef(-180, 1, 0, 0);
 	glScalef(0.02f, 0.3f, 0.15f);
-	glTranslatef(0.0f, -1.0f, 0.0f); // Pivot point fix
+	glTranslatef(0.0f, -1.0f, 0.0f);
 	gluSphere(quad, 1.0, 10, 10);
 	glPopMatrix();
 
+	glDisable(GL_TEXTURE_2D);
 	glPopMatrix();
 	gluDeleteQuadric(quad);
 }
 
+void DrawBananaLeafFan(float scale) {
+	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
+	gluQuadricTexture(quad, GL_TRUE); // Enable textures on cylinders/spheres
+
+	glPushMatrix();
+	glScalef(scale, scale, scale);
+
+	// ==========================================
+	// --- 1. THE HANDLE & TASSELS ---
+	// ==========================================
+
+	// Handle Base / Ring (Now Textured!)
+	glEnable(GL_TEXTURE_2D); // Make sure textures are ENABLED, not disabled!
+	if (currentBladeIndex == 0) {
+		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+	}
+	else if (currentBladeIndex == 1) {
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+	}
+	glColor3f(1.0f, 1.0f, 1.0f); // Reset to white so texture shows its true colors
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0f, -0.015f);
+	gluCylinder(quad, 0.05, 0.05, 0.03, 20, 1);
+	glPopMatrix();
+
+	// Bottom Tassels (Now Textured!)
+	glPushMatrix();
+	glTranslatef(0.04f, -0.15f, 0.0f);
+	glRotatef(15.0f, 0.0f, 0.0f, 1.0f);
+	glScalef(0.03f, 0.1f, 0.03f);
+	gluSphere(quad, 1.0, 10, 10);
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-0.04f, -0.15f, 0.0f);
+	glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
+	glScalef(0.03f, 0.1f, 0.03f);
+	gluSphere(quad, 1.0, 10, 10);
+	glPopMatrix();
+
+	// Main Handle Wrapping 
+	glEnable(GL_TEXTURE_2D);
+	if (currentBladeIndex == 0) {
+		glBindTexture(GL_TEXTURE_2D, bananaLeafHandleTexture);
+	}
+	else if (currentBladeIndex == 1) {
+		glBindTexture(GL_TEXTURE_2D, sliverTexture);
+	}
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glPushMatrix();
+	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	gluCylinder(quad, 0.04, 0.04, 0.5, 15, 1);
+	glPopMatrix();
+
+
+	// ==========================================
+	// --- 2. THE CENTRAL SPINE ---
+	// ==========================================
+	glEnable(GL_TEXTURE_2D);
+	if (currentBladeIndex == 0) {
+		glBindTexture(GL_TEXTURE_2D, sliverTexture);
+	}
+	else if (currentBladeIndex == 1) {
+		glBindTexture(GL_TEXTURE_2D, bananaLeafHandleTexture);
+	}
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glPushMatrix();
+	glTranslatef(0.0f, 0.5f, 0.0f);
+	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	gluCylinder(quad, 0.03, 0.015, 1.4, 10, 1);
+	glPopMatrix();
+
+	// Top Spine Tassel (Now Textured!)
+	glEnable(GL_TEXTURE_2D);
+	if (currentBladeIndex == 0) {
+		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+	}
+	else if (currentBladeIndex == 1) {
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+	}
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glPushMatrix();
+	glTranslatef(0.0f, 1.9f, 0.0f);
+	glScalef(0.04f, 0.12f, 0.04f);
+	gluSphere(quad, 1.0, 10, 10);
+	glPopMatrix();
+
+
+	// ==========================================
+	// --- 3. THE MAGIC LEAF (Simple Vertex Shape) ---
+	// ==========================================
+	glEnable(GL_TEXTURE_2D);
+	if (currentBladeIndex == 0) {
+		glBindTexture(GL_TEXTURE_2D, bananaLeafTexture);
+	}
+	else if (currentBladeIndex == 1) {
+		glBindTexture(GL_TEXTURE_2D, goldBananaLeafTexture);
+	}
+	glColor3f(1.0f, 1.0f, 1.0f);
+
+	float thickness = 0.02f;
+	const int NUM_POINTS = 6;
+
+	// Hardcoded points to easily explain to your tutor!
+	float profileX[NUM_POINTS] = { 0.05f, 0.60f, 0.35f, 0.70f, 0.40f, 0.00f };
+	float profileY[NUM_POINTS] = { 0.50f, 0.80f, 1.20f, 1.55f, 1.80f, 1.70f };
+
+	// A. FRONT FACE 
+	glBegin(GL_QUAD_STRIP);
+	for (int i = 0; i < NUM_POINTS; i++) {
+		float texV = (float)i / (NUM_POINTS - 1);
+		glTexCoord2f(0.0f, texV); glVertex3f(-profileX[i], profileY[i], thickness);
+		glTexCoord2f(1.0f, texV); glVertex3f(profileX[i], profileY[i], thickness);
+	}
+	glEnd();
+
+	// B. BACK FACE
+	glBegin(GL_QUAD_STRIP);
+	for (int i = 0; i < NUM_POINTS; i++) {
+		float texV = (float)i / (NUM_POINTS - 1);
+		glTexCoord2f(1.0f, texV); glVertex3f(-profileX[i], profileY[i], -thickness);
+		glTexCoord2f(0.0f, texV); glVertex3f(profileX[i], profileY[i], -thickness);
+	}
+	glEnd();
+
+
+	// ==========================================
+	// --- 4. THE BORDER RIM (Now Textured!) ---
+	// ==========================================
+	glEnable(GL_TEXTURE_2D); // Make sure this is ENABLED!
+	if (currentBladeIndex == 0) {
+		glBindTexture(GL_TEXTURE_2D, redCoreTexture);
+	}
+	else if (currentBladeIndex == 1) {
+		glBindTexture(GL_TEXTURE_2D, goldenTexture);
+	}
+	glColor3f(1.0f, 1.0f, 1.0f);
+
+	glBegin(GL_QUAD_STRIP);
+	// Trace up the Right Side
+	for (int i = 0; i < NUM_POINTS; i++) {
+		float texV = (float)i / (NUM_POINTS - 1);
+		glTexCoord2f(0.0f, texV); glVertex3f(profileX[i], profileY[i], thickness);
+		glTexCoord2f(1.0f, texV); glVertex3f(profileX[i], profileY[i], -thickness);
+	}
+	// Trace down the Left Side
+	for (int i = NUM_POINTS - 1; i >= 0; i--) {
+		float texV = (float)i / (NUM_POINTS - 1);
+		glTexCoord2f(0.0f, texV); glVertex3f(-profileX[i], profileY[i], thickness);
+		glTexCoord2f(1.0f, texV); glVertex3f(-profileX[i], profileY[i], -thickness);
+	}
+	glEnd();
+
+	glEnable(GL_TEXTURE_2D);
+	glPopMatrix();
+	gluDeleteQuadric(quad);
+}
+
+void DrawMagnumGun(float scale, bool isShooting) {
+	GLUquadricObj* quad = gluNewQuadric();
+	gluQuadricDrawStyle(quad, GLU_FILL);
+	gluQuadricTexture(quad, GL_TRUE);
+
+	glPushMatrix();
+	// I added a slight global scale-down here so it isn't massive in the character's hand
+	glScalef(scale * 0.8f, scale * 0.8f, scale * 0.8f);
+
+	// ==========================================
+	// --- 1. THE BARREL (Sleek & Straight) ---
+	// ==========================================
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, sliverTexture);
+	glColor3f(0.3f, 0.35f, 0.4f);
+
+	glPushMatrix();
+	glTranslatef(-0.05f, 0.05f, 0.0f);   // Start exactly where the cylinder ends
+	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);  // Point forward
+
+	// Main Barrel Tube (Much thinner)
+	gluCylinder(quad, 0.025, 0.025, 0.45f, 15, 1);
+
+	// Underlug (The thick metal part right under the barrel)
+	glTranslatef(0.0f, -0.015f, 0.0f);
+	gluCylinder(quad, 0.02, 0.02, 0.4f, 15, 1);
+
+	// Front Sight (Tiny bump at the tip)
+	glDisable(GL_TEXTURE_2D);
+	glColor3f(0.1f, 0.1f, 0.1f);
+	glTranslatef(0.0f, 0.045f, 0.4f);
+	glScalef(0.01f, 0.02f, 0.02f);
+	gluSphere(quad, 1.0, 10, 10);
+	glEnable(GL_TEXTURE_2D);
+	glPopMatrix();
+
+
+	// ==========================================
+	// --- 2. THE CYLINDER (MAGAZINE) ---
+	// ==========================================
+	glColor3f(0.2f, 0.25f, 0.3f);
+	glPushMatrix();
+	glTranslatef(-0.2f, 0.03f, 0.0f); // Shifted to the middle
+	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+
+	// A much tighter, compact cylinder
+	gluCylinder(quad, 0.07, 0.07, 0.15f, 15, 1);
+
+	// Caps to make it solid
+	gluDisk(quad, 0.0, 0.07, 15, 1);
+	glTranslatef(0.0f, 0.0f, 0.15f);
+	gluDisk(quad, 0.0, 0.07, 15, 1);
+	glPopMatrix();
+
+
+	// ==========================================
+	// --- 3. THE FRAME (BODY) ---
+	// ==========================================
+	glColor3f(0.3f, 0.35f, 0.4f);
+
+	// Main body holding the cylinder (Using a CUBE instead of a sphere for a blocky look)
+	glPushMatrix();
+	glTranslatef(-0.23f, 0.03f, 0.0f);
+	glScalef(0.12f, 0.10f, 0.05f); // Scale to make it a flat, rectangular block
+
+	// Draw a simple 3D box manually
+	glBegin(GL_QUADS);
+	// Front Face
+	glVertex3f(-0.5f, -0.5f, 0.5f);
+	glVertex3f(0.5f, -0.5f, 0.5f);
+	glVertex3f(0.5f, 0.5f, 0.5f);
+	glVertex3f(-0.5f, 0.5f, 0.5f);
+	// Back Face
+	glVertex3f(-0.5f, -0.5f, -0.5f);
+	glVertex3f(-0.5f, 0.5f, -0.5f);
+	glVertex3f(0.5f, 0.5f, -0.5f);
+	glVertex3f(0.5f, -0.5f, -0.5f);
+	// Top Face
+	glVertex3f(-0.5f, 0.5f, -0.5f);
+	glVertex3f(-0.5f, 0.5f, 0.5f);
+	glVertex3f(0.5f, 0.5f, 0.5f);
+	glVertex3f(0.5f, 0.5f, -0.5f);
+	// Bottom Face
+	glVertex3f(-0.5f, -0.5f, -0.5f);
+	glVertex3f(0.5f, -0.5f, -0.5f);
+	glVertex3f(0.5f, -0.5f, 0.5f);
+	glVertex3f(-0.5f, -0.5f, 0.5f);
+	// Right face
+	glVertex3f(0.5f, -0.5f, -0.5f);
+	glVertex3f(0.5f, 0.5f, -0.5f);
+	glVertex3f(0.5f, 0.5f, 0.5f);
+	glVertex3f(0.5f, -0.5f, 0.5f);
+	// Left Face
+	glVertex3f(-0.5f, -0.5f, -0.5f);
+	glVertex3f(-0.5f, -0.5f, 0.5f);
+	glVertex3f(-0.5f, 0.5f, 0.5f);
+	glVertex3f(-0.5f, 0.5f, -0.5f);
+	glEnd();
+	glPopMatrix();
+
+	// Top strap (metal over the cylinder)
+	glPushMatrix();
+	glTranslatef(-0.25f, 0.10f, 0.0f);
+	glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+	glScalef(1.0f, 0.2f, 1.0f);
+	gluCylinder(quad, 0.04, 0.04, 0.2f, 10, 1);
+	glPopMatrix();
+
+
+	// ==========================================
+	// --- 4. THE HANDLE (WOODEN GRIP) ---
+	// ==========================================
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, woodTexture);
+	glColor3f(0.4f, 0.2f, 0.1f);
+
+	glPushMatrix();
+	// Move to the attachment point on the frame
+	glTranslatef(-0.24f, 0.02f, 0.0f);
+
+	//// Point the cylinder straight down
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+
+	// Squash it on the thickness axis (0.4f) so it fits in the hand!
+	glScalef(1.0f, 0.4f, 1.0f);
+
+	// Draw the handle cylinder (Top radius 0.05, bottom radius 0.04, length 0.16)
+	gluCylinder(quad, 0.04, 0.04, 0.16f, 15, 1);
+
+	// Add a flat cap at the bottom of the handle
+	glTranslatef(0.0f, 0.0f, 0.16f);
+	gluDisk(quad, 0.0, 0.04, 15, 1);
+
+	glPopMatrix();
+
+	// ==========================================
+	// --- 5. TRIGGER & GUARD ---
+	// ==========================================
+	glDisable(GL_TEXTURE_2D);
+	glColor3f(0.15f, 0.15f, 0.15f);
+
+	// Trigger Guard (Made much thinner)
+	glBegin(GL_QUAD_STRIP);
+	for (int i = 0; i <= 10; i++) {
+		float angle = 3.14159f + ((float)i / 10.0f) * 3.14159f;
+		float px = -0.15f + cos(angle) * 0.05f;
+		float py = -0.04f + sin(angle) * 0.05f;
+		glVertex3f(px, py, 0.005f);  // Super thin edges
+		glVertex3f(px, py, -0.005f);
+	}
+	glEnd();
+
+	// Trigger 
+	glPushMatrix();
+	glTranslatef(-0.16f, -0.06f, 0.0f);
+	glRotatef(-15.0f, 0.0f, 0.0f, 1.0f);
+	glScalef(0.01f, 0.03f, 0.01f);
+	gluSphere(quad, 1.0, 10, 10);
+	glPopMatrix();
+
+
+	// ==========================================
+	// --- 6. SHOOTING EFFECT (Flash & Trail) ---
+	// ==========================================
+	if (isShooting) {
+		glPushMatrix();
+
+		// Move to the exact tip of the barrel
+		glTranslatef(0.40f, 0.05f, 0.0f);
+
+		// Turn on blending for transparency
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_LIGHTING); // Makes the fire glow brightly
+
+		// --- Muzzle Flash (Orange & Yellow Sphere) ---
+		// Outer orange glow
+		glColor4f(1.0f, 0.5f, 0.0f, 0.8f); // 80% opaque
+		glPushMatrix();
+		glScalef(0.05f, 0.05f, 0.05f);
+		gluSphere(quad, 1.0, 10, 10);
+		glPopMatrix();
+
+		// Inner yellow bright flash
+		glColor4f(1.0f, 1.0f, 0.2f, 1.0f); // 100% solid
+		glPushMatrix();
+		glScalef(0.03f, 0.03f, 0.03f);
+		gluSphere(quad, 1.0, 10, 10);
+		glPopMatrix();
+
+		// --- Trajectory (Transparent Cylinder) ---
+		// Point the trail forward along the X axis
+		glRotatef(90.0f, 0.0f, 1.0f, 0.0f);
+
+		// Light yellow/white transparent beam
+		glColor4f(1.0f, 0.9f, 0.5f, 0.5f); // 50% transparent
+
+		// Very thin cylinder, stretching super far forward (length 5.0f)
+		gluCylinder(quad, 0.005, 0.005, 5.0f, 10, 1);
+
+		glEnable(GL_LIGHTING); // Turn lighting back on
+		glDisable(GL_BLEND);   // Turn off blending
+		glPopMatrix();
+	}
+
+	glEnable(GL_TEXTURE_2D);
+	glPopMatrix();
+	gluDeleteQuadric(quad);
+}
 
 void DrawEnergyChargeOrb(float radius, float pulse)
 {
@@ -5523,14 +6327,13 @@ void DrawArm(float side)
 	DrawHand(side);
 
 	// ==========================================
-	// WEAPON CYCLING LOGIC (Only on Right Arm)
+	// NEW WEAPON LOGIC (Works for both sides)
 	// ==========================================
-	if (side > 0.0f)
-	{
-		glPushMatrix();
+	// Determine which weapon index to use
+	int handWeapon = (side > 0.0f) ? (currentRightWeapon % 5) : (currentLeftWeapon % 5);
 
-		// NEW: This math trick maps states 3,4,5 back to 0,1,2 so the hands work normally!
-		int handWeapon = currentWeapon % 3;
+	if (handWeapon != 0) {
+		glPushMatrix();
 
 		switch (handWeapon) {
 		case 1: // --- SPEAR ---
@@ -5540,13 +6343,8 @@ void DrawArm(float side)
 
 			// 2. Scale
 			glScalef(0.2f, 0.2f, 0.2f);
-
-			// 3. Rotation: Make it vertical
 			glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
-
-			// 4. CENTER IT: Slide the spear backward by half its length
 			glTranslatef(0.0f, 0.0f, -0.35f);
-
 			DrawSpear(0.7);
 			break;
 
@@ -5556,19 +6354,25 @@ void DrawArm(float side)
 			glTranslatef(-0.075f, 0.01f, 0.25f);
 			glRotatef(270.0f, 0.0f, 1.0f, 0.0f);
 			glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
-
-			// 2. Scale
 			glScalef(0.2f, 0.2f, 0.2f);
-
-			// 3. Rotation: Make it vertical
-			// 4. CENTER IT: Slide the spear backward by half its length
 			glTranslatef(0.0f, 0.0f, -0.35f);
-
 			DrawFishSword(0.7);
 			break;
 
-		case 0: // --- NO WEAPON ---
-		default:
+		case 3: // --- LEAF FAN ---
+			glTranslatef(0.0f, 0.009f, 0.0f);
+			glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+			glScalef(0.15f, 0.15f, 0.15f);
+			DrawBananaLeafFan(1.0f);
+			break;
+
+		case 4: // --- MAGNUM GUN ---
+			glTranslatef(-0.06f, 0.005f, 0.008f);
+			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
+			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+			glScalef(0.25f, 0.25f, 0.25f);
+			// If dual wielding, both guns will flash
+			DrawMagnumGun(1.0f, isGunShooting);
 			break;
 		}
 
@@ -5812,10 +6616,8 @@ void DrawFoot()
 	glPopMatrix();
 	// END Ankle
 
-	extern int currentWeapon; // (Optional: depending on where currentWeapon is declared, you might need this)
-
-	// NEW: Wheels appear on states 3, 4, and 5!
-	if (currentWeapon >= 3) {
+	// NEW: Wheels appear on states 5, 6, 7, 8, and 9!
+	if (currentRightWeapon >= 5 && currentRightWeapon <= 9) {
 		glDisable(GL_TEXTURE_2D); // Turn off skin texture for the fiery colors
 
 		glPushMatrix();
@@ -5829,8 +6631,6 @@ void DrawFoot()
 		DrawWindFireWheel(0.04f);
 		glPopMatrix();
 
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, skinTexture);
 	}
 	// ==========================================
 
