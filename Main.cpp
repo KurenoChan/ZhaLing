@@ -76,7 +76,7 @@ enum FiveElementPreset
 
 struct AnimationPose
 {
-	float torsoX = 0.0f, torsoY = 0.0f, lowerTorsoX = 0.0f, lowerTorsoY, headX = 0.0f;
+	float torsoX = 0.0f, torsoY = 0.0f, lowerTorsoX = 0.0f, lowerTorsoY = 0.0f, headX = 0.0f;
 	float rArmX = 0.0f, rArmY = 0.0f, rArmZ = 0.0f, rLowerArmX = 0.0f, rHandX = 0.0f, rHandY = 0.0f, rHandZ = 0.0f;
 	float lArmX = 0.0f, lArmY = 0.0f, lArmZ = 0.0f, lLowerArmX = 0.0f, lHandX = 0.0f, lHandY = 0.0f, lHandZ = 0.0f;
 	float lLegX = 0.0f, rLegX = 0.0f, lKneeX = 0.0f, rKneeX = 0.0f, lFootX = 0.0f, rFootX = 0.0f;
@@ -1366,7 +1366,7 @@ void FirewheelAnimation() {
 	characterX = charX; characterY = charY; characterZ = charZ;
 }
 
-void BalletAnimation() {
+void WukongKickAnimation() {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
 
 	currentLeftWeapon = 0;
@@ -2316,7 +2316,7 @@ void UpdateAnimation() {
 		FirewheelAnimation();
 		break;
 	case 4:
-		BalletAnimation();
+		WukongKickAnimation();
 		break;
 	case 5:
 		GunShootAnimation();
