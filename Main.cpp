@@ -825,56 +825,56 @@ void SpearAttack() {
 		charX = characterX, charY = characterY, charZ = characterZ;
 	}
 
-	// ---------------------------------------------------------
-	// PHASE 4: Recovery (80% to 100%)
-	// ---------------------------------------------------------
-	else {
-		float phaseT = (t - 0.8f) / 0.2f;
-		float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
+		// ---------------------------------------------------------
+		// PHASE 4: Recovery (80% to 100%)
+		// ---------------------------------------------------------
+		else {
+			float phaseT = (t - 0.8f) / 0.2f;
+			float ease = (1.0f - cos(phaseT * 3.14159f)) / 2.0f;
 
-		headX = 0.0f - (ease * 0.0f);
-		headY = 25.0f - (ease * 25.0f);
-		headZ = 0.0f - (ease * 0.0f);
+			headX = 0.0f - (ease * 0.0f);
+			headY = 25.0f - (ease * 25.0f);
+			headZ = 0.0f - (ease * 0.0f);
 
-		uTorsoX = 0.0f - (ease * 0.0f);
-		uTorsoY = -25.0f - (ease * -25.0f);
-		uTorsoZ = 0.0f - (ease * 0.0f);
+			uTorsoX = 0.0f - (ease * 0.0f);
+			uTorsoY = -25.0f - (ease * -25.0f);
+			uTorsoZ = 0.0f - (ease * 0.0f);
 
-		lTorsoX = 0.0f - (ease * 0.0f);
-		lTorsoY = -15.0f - (ease * -15.0f);
-		lTorsoZ = 0.0f - (ease * 0.0f);
+			lTorsoX = 0.0f - (ease * 0.0f);
+			lTorsoY = -15.0f - (ease * -15.0f);
+			lTorsoZ = 0.0f - (ease * 0.0f);
 
-		// Left arm returns from your new poses!
-		lArmX = -55.0f - (ease * -55.0f);
-		lArmY = -25.0f - (ease * -25.0f);
-		lArmZ = 0.0f - (ease * 0.0f);
-		lLowerArmX = 35.0f - (ease * 35.0f);
-		lLowerArmY = 115.0f - (ease * 115.0f);
-		lHandX = -100.0f - (ease * -100.0f);
-		lHandY = 0.0f - (ease * 0.0f);
-		lHandZ = 0.0f - (ease * 0.0f);
+			// Left arm returns from your new poses!
+			lArmX = -55.0f - (ease * -55.0f);
+			lArmY = -25.0f - (ease * -25.0f);
+			lArmZ = 0.0f - (ease * 0.0f);
+			lLowerArmX = 35.0f - (ease * 35.0f);
+			lLowerArmY = 115.0f - (ease * 115.0f);
+			lHandX = -100.0f - (ease * -100.0f);
+			lHandY = 0.0f - (ease * 0.0f);
+			lHandZ = 0.0f - (ease * 0.0f);
 
-		rArmX = 0.0f - (ease * 0.0f);
-		rArmY = 65.0f - (ease * 65.0f);
-		rArmZ = 0.0f - (ease * 0.0f);
-		rLowerArmX = 0.0f - (ease * 0.0f);
-		rLowerArmY = 5.0f - (ease * 5.0f);
-		rHandX = 0.0f - (ease * 0.0f);
-		rHandY = -90.0f - (ease * -90.0f);
-		rHandZ = 0.0f - (ease * 0.0f);
+			rArmX = 0.0f - (ease * 0.0f);
+			rArmY = 65.0f - (ease * 65.0f);
+			rArmZ = 0.0f - (ease * 0.0f);
+			rLowerArmX = 0.0f - (ease * 0.0f);
+			rLowerArmY = 5.0f - (ease * 5.0f);
+			rHandX = 0.0f - (ease * 0.0f);
+			rHandY = -90.0f - (ease * -90.0f);
+			rHandZ = 0.0f - (ease * 0.0f);
 
-		lLegX = 35.0f - (ease * 35.0f);
-		lLegY = 10.0f - (ease * 10.0f);
-		lLegZ = 0.0f - (ease * 0.0f);
-		lKneeX = 0.0f - (ease * 0.0f);
+			lLegX = 35.0f - (ease * 35.0f);
+			lLegY = 10.0f - (ease * 10.0f);
+			lLegZ = 0.0f - (ease * 0.0f);
+			lKneeX = 0.0f - (ease * 0.0f);
 
-		rLegX = -45.0f - (ease * -45.0f);
-		rLegY = 20.0f - (ease * 20.0f);
-		rLegZ = 0.0f - (ease * 0.0f);
-		rKneeX = 25.0f - (ease * 25.0f);
+			rLegX = -45.0f - (ease * -45.0f);
+			rLegY = 20.0f - (ease * 20.0f);
+			rLegZ = 0.0f - (ease * 0.0f);
+			rKneeX = 25.0f - (ease * 25.0f);
 
-		charX = characterX, charY = characterY, charZ = characterZ;
-	}
+			charX = characterX, charY = characterY, charZ = characterZ;
+		}
 
 	// ==========================================
 	// 3. APPLY VARIABLES TO PARTS
