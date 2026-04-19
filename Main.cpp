@@ -83,7 +83,7 @@ struct AnimationPose
 	float charZ = 0.0f, charY = 0.0f;
 };
 
-CharacterMode currentCharacterMode = LENGZAI_MODE;
+CharacterMode currentCharacterMode = CHIBI_MODE;
 std::vector<CharacterTexturePreset> characterTexturePresets;
 int currentCharacterTexturePresetIndex = 0;
 
@@ -2743,7 +2743,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			{
 			case CHARACTER_CUSTOM:
 				// (You can add logic here later if 'B' should do something else in Character mode)
-				currentCharacterMode = (currentCharacterMode == LENGZAI_MODE) ? CHIBI_MODE : LENGZAI_MODE;
+				currentCharacterMode = (currentCharacterMode == CHIBI_MODE) ? LENGZAI_MODE : CHIBI_MODE;
 				break;
 			case WEAPON_CUSTOM:
 				// Cycle weapons ONLY when in Weapon Mode
@@ -6908,11 +6908,11 @@ void DrawLeg(float side, float torsoRadius)
 
 void DrawHead(float headBaseRadius, float headBaseHeight)
 {
-	bool isChibi = (currentCharacterMode == CHIBI_MODE);
+	bool isLengZai = (currentCharacterMode == LENGZAI_MODE);
 
 	glPushMatrix();
 
-	if (isChibi)
+	if (isLengZai)
 	{
 		// smaller, slimmer handsome face
 		glScalef(0.92f, 0.95f, 0.92f);
@@ -6924,7 +6924,7 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 
 	// Eyes
 	glPushMatrix();
-	if (isChibi)
+	if (isLengZai)
 	{
 		glTranslatef(0.0f, -0.003f, 0.0f);
 		glScalef(0.88f, 0.88f, 1.0f);
@@ -6936,7 +6936,7 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 
 	// Eyelashes
 	glPushMatrix();
-	if (isChibi)
+	if (isLengZai)
 	{
 		glTranslatef(0.0f, -0.003f, 0.0f);
 		glScalef(0.90f, 0.90f, 1.0f);
@@ -6948,7 +6948,7 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 
 	// Mouth
 	glPushMatrix();
-	if (isChibi)
+	if (isLengZai)
 	{
 		glTranslatef(0.0f, -0.006f, 0.006f);
 		glScalef(0.78f, 0.78f, 1.0f);
@@ -6964,7 +6964,7 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 
 	// Left Ear Ring
 	glPushMatrix();
-	if (isChibi)
+	if (isLengZai)
 		glTranslatef(-0.018f, 0.006f, 0.0f);
 	DrawEarRing(-1.0f);
 	glPopMatrix();
@@ -6977,7 +6977,7 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 	glPushMatrix();
 	glTranslatef(headBaseRadius * 1.2f, 0.0f, 0.0f);
 	DrawRightEar();
-	if (isChibi)
+	if (isLengZai)
 		glTranslatef(0.018f, 0.006f, 0.0f);
 	DrawEarRing(1.0f);
 	glPopMatrix();
@@ -6985,7 +6985,7 @@ void DrawHead(float headBaseRadius, float headBaseHeight)
 
 	// Nose
 	glPushMatrix();
-	if (isChibi)
+	if (isLengZai)
 	{
 		glTranslatef(0.0f, -0.001f, 0.010f);
 		glScalef(0.88f, 0.88f, 0.88f);
@@ -7491,7 +7491,7 @@ void DrawWaterElementGem(float torsoRadius, float torsoHeight)
 	glDisable(GL_TEXTURE_2D);
 }
 
-void DrawWaterElementDecorations(float torsoRadius, float torsoHeight, bool isChibi)
+void DrawWaterElementDecorations(float torsoRadius, float torsoHeight, bool isLengZai)
 {
 	DrawWaterElementFrontRobe(torsoRadius, torsoHeight);
 	DrawWaterElementGoldTrim(torsoRadius, torsoHeight);
@@ -7532,7 +7532,7 @@ void DrawWoodElementHeadAccessory(float headBaseRadius)
 	glDisable(GL_TEXTURE_2D);
 }
 
-void DrawWoodElementDecorations(float torsoRadius, float torsoHeight, bool isChibi)
+void DrawWoodElementDecorations(float torsoRadius, float torsoHeight, bool isLengZai)
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, woodTexture);
@@ -7608,7 +7608,7 @@ void DrawWoodElementHairDecorations(float headBaseRadius)
 	glDisable(GL_TEXTURE_2D);
 }
 
-void DrawWoodElementClothAccents(float torsoRadius, float torsoHeight, bool isChibi)
+void DrawWoodElementClothAccents(float torsoRadius, float torsoHeight, bool isLengZai)
 {
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, grassTexture);
@@ -7619,7 +7619,7 @@ void DrawWoodElementClothAccents(float torsoRadius, float torsoHeight, bool isCh
 		glPushMatrix();
 		glTranslatef(i * torsoRadius * 0.92f, -torsoHeight * 1.22f, torsoRadius * 1.02f);
 		glRotatef((float)(i * 14), 0.0f, 0.0f, 1.0f);
-		glScalef(0.26f, isChibi ? 0.95f : 1.25f, 0.12f);
+		glScalef(0.26f, isLengZai ? 0.95f : 1.25f, 0.12f);
 		DrawCuboidPolygon(torsoRadius * 0.10f, torsoHeight * 0.75f, torsoRadius * 0.06f);
 		glPopMatrix();
 	}
@@ -8157,7 +8157,7 @@ void DrawCharacterHeadAccessory(float headBaseRadius)
 	}
 }
 
-void DrawCharacterBodyDecorations(float torsoRadius, float torsoHeight, bool isChibi)
+void DrawCharacterBodyDecorations(float torsoRadius, float torsoHeight, bool isLengZai)
 {
 	switch (currentCharacterTexturePresetIndex)
 	{
@@ -8167,7 +8167,7 @@ void DrawCharacterBodyDecorations(float torsoRadius, float torsoHeight, bool isC
 
 		glPushMatrix();
 		glTranslatef(0.0f, torsoHeight * 0.3f, torsoRadius * 0.5f);
-		glScalef(0.9f, isChibi ? 0.75f : 1.0f, 0.18f);
+		glScalef(0.9f, isLengZai ? 0.75f : 1.0f, 0.18f);
 		DrawCuboidPolygon(torsoRadius * 0.2f, torsoHeight * 1.35f, torsoRadius * 0.08f);
 		glPopMatrix();
 
@@ -8188,7 +8188,7 @@ void DrawCharacterBodyDecorations(float torsoRadius, float torsoHeight, bool isC
 		break;
 
 	case WOOD_ELEMENT:
-		DrawWoodElementDecorations(torsoRadius, torsoHeight, isChibi);
+		DrawWoodElementDecorations(torsoRadius, torsoHeight, isLengZai);
 		break;
 
 	case METAL_ELEMENT:
@@ -8260,7 +8260,7 @@ void DrawCharacterBodyDecorations(float torsoRadius, float torsoHeight, bool isC
 			glPushMatrix();
 			glTranslatef(0.0f, -torsoHeight * 1.7f, i * torsoRadius * 0.45f);
 			glRotatef((float)(i * 12), 1.0f, 0.0f, 0.0f);
-			glScalef(0.9f, isChibi ? 0.8f : 1.0f, 0.18f);
+			glScalef(0.9f, isLengZai ? 0.8f : 1.0f, 0.18f);
 			DrawCuboidPolygon(torsoRadius * 0.22f, torsoHeight * 1.2f, torsoRadius * 0.08f);
 			glPopMatrix();
 		}
@@ -8692,19 +8692,19 @@ void DrawDualSwordAnimationEffect()
 
 void DrawCharacter()
 {
-	bool isChibi = (currentCharacterMode == CHIBI_MODE);
+	bool isLengZai = (currentCharacterMode == LENGZAI_MODE);
 
 	// handsome / tall mode proportions
-	float torsoRadius = isChibi ? 0.052f : 0.06f;
-	float torsoHeight = isChibi ? 0.042f : 0.03f;
+	float torsoRadius = isLengZai ? 0.052f : 0.06f;
+	float torsoHeight = isLengZai ? 0.042f : 0.03f;
 
-	float neckRadius = isChibi ? 0.017f : 0.02f;
-	float neckHeight = isChibi ? 0.078f : 0.065f;
+	float neckRadius = isLengZai ? 0.017f : 0.02f;
+	float neckHeight = isLengZai ? 0.078f : 0.065f;
 
-	float headBaseRadius = isChibi ? 0.082f : 0.10f;
-	float headBaseHeight = isChibi ? 0.040f : 0.05f;
+	float headBaseRadius = isLengZai ? 0.082f : 0.10f;
+	float headBaseHeight = isLengZai ? 0.040f : 0.05f;
 
-	float torsoArmsOffsetX = isChibi ? 0.090f : 0.095f;
+	float torsoArmsOffsetX = isLengZai ? 0.090f : 0.095f;
 	float torsoLegOffsetX = 0.04f;
 
 	glPushMatrix();
@@ -8729,14 +8729,14 @@ void DrawCharacter()
 
 	glPushMatrix();
 	ApplyTint(GetElementAccentTint());
-	DrawCharacterBodyDecorations(torsoRadius, torsoHeight, isChibi);
+	DrawCharacterBodyDecorations(torsoRadius, torsoHeight, isLengZai);
 	ResetTint();
 	glPopMatrix();
 
 	if (currentCharacterTexturePresetIndex == WOOD_ELEMENT)
 	{
 		glPushMatrix();
-		DrawWoodElementClothAccents(torsoRadius, torsoHeight, isChibi);
+		DrawWoodElementClothAccents(torsoRadius, torsoHeight, isLengZai);
 		glPopMatrix();
 	}
 
@@ -8744,14 +8744,14 @@ void DrawCharacter()
 	// NECK
 	// =========================
 	glPushMatrix();
-	glTranslatef(0.0f, (torsoHeight / 2 + neckHeight * (isChibi ? 0.82f : 1.1f)), 0.0f);
+	glTranslatef(0.0f, (torsoHeight / 2 + neckHeight * (isLengZai ? 0.82f : 1.1f)), 0.0f);
 	DrawNeck(neckRadius, neckHeight);
 
 	// =========================
 	// HEAD
 	// =========================
 	glPushMatrix();
-	glTranslatef(0.0f, neckHeight + headBaseHeight * (isChibi ? 0.95f : 0.8f), 0.0f);
+	glTranslatef(0.0f, neckHeight + headBaseHeight * (isLengZai ? 0.95f : 0.8f), 0.0f);
 
 	PartRotation& head = parts[HEAD];
 	glRotatef(head.angleX, 1.0f, 0.0f, 0.0f);
@@ -8761,10 +8761,10 @@ void DrawCharacter()
 
 	// Hair
 	glPushMatrix();
-	glTranslatef(0.0f, headBaseRadius * (isChibi ? 0.46f : 0.5f), 0.0f);
+	glTranslatef(0.0f, headBaseRadius * (isLengZai ? 0.46f : 0.5f), 0.0f);
 	ApplyTint(GetElementHairTint());
 
-	if (isChibi)
+	if (isLengZai)
 	{
 		glScalef(0.92f, 0.96f, 0.92f);
 	}
@@ -8780,9 +8780,9 @@ void DrawCharacter()
 
 	// Hair Ribbon
 	glPushMatrix();
-	glTranslatef(0.0f, headBaseRadius * (isChibi ? 0.92f : 1.0f), 0.0f);
+	glTranslatef(0.0f, headBaseRadius * (isLengZai ? 0.92f : 1.0f), 0.0f);
 	ApplyTint(GetElementClothTint());
-	if (isChibi)
+	if (isLengZai)
 		glScalef(0.90f, 0.92f, 0.90f);
 	DrawHairRibbons(headBaseRadius);
 	ResetTint();
@@ -8810,12 +8810,12 @@ void DrawCharacter()
 	glBindTexture(GL_TEXTURE_2D, skinTexture);
 
 	glPushMatrix();
-	glTranslatef(0.0f, torsoHeight * (isChibi ? 0.92f : 1.0f), 0.0f);
+	glTranslatef(0.0f, torsoHeight * (isLengZai ? 0.92f : 1.0f), 0.0f);
 
 	// Left Arm
 	glPushMatrix();
 	glTranslatef(-torsoArmsOffsetX, 0.0f, 0.0f);
-	if (isChibi)
+	if (isLengZai)
 		glScalef(0.92f, 1.20f, 0.92f);
 	DrawArm(-1.0f);
 	glPopMatrix();
@@ -8823,7 +8823,7 @@ void DrawCharacter()
 	// Right Arm
 	glPushMatrix();
 	glTranslatef(torsoArmsOffsetX, 0.0f, 0.0f);
-	if (isChibi)
+	if (isLengZai)
 		glScalef(0.92f, 1.20f, 0.92f);
 	DrawArm(1.0f);
 	glPopMatrix();
