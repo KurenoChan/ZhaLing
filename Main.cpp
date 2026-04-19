@@ -5085,11 +5085,18 @@ void DrawWindFireWheel(float size) {
 	GLUquadricObj* quad = gluNewQuadric();
 	gluQuadricDrawStyle(quad, GLU_FILL); // Always solid
 
-	// NEW: Tell the quadric to generate texture coordinates!
+	// Tell the quadric to generate texture coordinates!
 	gluQuadricTexture(quad, GL_TRUE);
+
+	// Automatically calculates smooth lighting normals for rings/spheres/cylinders!
+	gluQuadricNormals(quad, GLU_SMOOTH);
 
 	glPushMatrix();
 	glScalef(size, size, size);
+
+	// CRITICAL FIX: If you scale an object, you MUST enable normalize, 
+	// otherwise the lighting normals get scaled too and shadows will break!
+	glEnable(GL_NORMALIZE);
 
 	// ==========================================
 	// ANIMATION LOGIC
@@ -5106,24 +5113,37 @@ void DrawWindFireWheel(float size) {
 	glEnable(GL_TEXTURE_2D);
 
 	// --- 1. THE MAIN RING (Bronze) ---
-	if (currentBladeIndex == 0)
-	{
+	if (currentBladeIndex == 0) {
 		glBindTexture(GL_TEXTURE_2D, fireWheelRing);
 	}
-	else if (currentBladeIndex == 1)
-	{
+	else if (currentBladeIndex == 1) {
 		glBindTexture(GL_TEXTURE_2D, goldenTexture);
 	}
 	glColor3f(1.0f, 1.0f, 1.0f); // Reset to white so texture shows its true color
 
 	glPushMatrix();
 	glTranslatef(0, 0, -0.05f);
+
+	// FIX: Inner cylinder (Normals must point INSIDE towards the center hole)
+	gluQuadricOrientation(quad, GLU_INSIDE);
 	gluCylinder(quad, 0.7, 0.7, 0.1, 60, 1);
+
+	// FIX: Outer cylinder (Normals must point OUTSIDE)
+	gluQuadricOrientation(quad, GLU_OUTSIDE);
 	gluCylinder(quad, 0.8, 0.8, 0.1, 60, 1);
+
+	// FIX: Back Disk (Normals must point BACKWARDS in -Z)
+	gluQuadricOrientation(quad, GLU_INSIDE);
 	gluDisk(quad, 0.7, 0.8, 60, 1);
+
 	glTranslatef(0, 0, 0.1f);
+	// FIX: Front Disk (Normals must point FORWARDS in +Z)
+	gluQuadricOrientation(quad, GLU_OUTSIDE);
 	gluDisk(quad, 0.7, 0.8, 60, 1);
 	glPopMatrix();
+
+	// Reset orientation back to default for the remaining shapes
+	gluQuadricOrientation(quad, GLU_OUTSIDE);
 
 	// --- 2. THE SMOOTH 3D FLAME BLADES ---
 	float thickness = 0.06f;
@@ -5147,17 +5167,16 @@ void DrawWindFireWheel(float size) {
 		}
 
 		// A. OUTER GOLDEN FRAME
-		if (currentBladeIndex == 0)
-		{
+		if (currentBladeIndex == 0) {
 			glBindTexture(GL_TEXTURE_2D, fireWheelBladeTexture);
 		}
-		else if (currentBladeIndex == 1)
-		{
+		else if (currentBladeIndex == 1) {
 			glBindTexture(GL_TEXTURE_2D, fireWheelRing);
 		}
 		glColor3f(1.0f, 1.0f, 1.0f);
 
 		// Front Face
+		glNormal3f(0.0f, 0.0f, 1.0f); // Normal points toward the screen (+Z)
 		glBegin(GL_QUAD_STRIP);
 		for (int j = 0; j < resolution; j++) {
 			float t = (float)j / (resolution - 1); // For texture mapping
@@ -5167,6 +5186,7 @@ void DrawWindFireWheel(float size) {
 		glEnd();
 
 		// Back Face
+		glNormal3f(0.0f, 0.0f, -1.0f); // Normal points away from the screen (-Z)
 		glBegin(GL_QUAD_STRIP);
 		for (int j = 0; j < resolution; j++) {
 			float t = (float)j / (resolution - 1);
@@ -5179,6 +5199,12 @@ void DrawWindFireWheel(float size) {
 		glBegin(GL_QUAD_STRIP); // Outer rim
 		for (int j = 0; j < resolution; j++) {
 			float t = (float)j / (resolution - 1);
+
+			// Calculate smooth outward-facing normal for the edge
+			float len = sqrt(outerX[j] * outerX[j] + outerY[j] * outerY[j]);
+			if (len > 0.001f) glNormal3f(outerX[j] / len, outerY[j] / len, 0.0f);
+			else glNormal3f(0.0f, 1.0f, 0.0f);
+
 			glTexCoord2f(t, 0.0f); glVertex3f(outerX[j], outerY[j], thickness / 2);
 			glTexCoord2f(t, 1.0f); glVertex3f(outerX[j], outerY[j], -thickness / 2);
 		}
@@ -5187,18 +5213,22 @@ void DrawWindFireWheel(float size) {
 		glBegin(GL_QUAD_STRIP); // Inner rim
 		for (int j = 0; j < resolution; j++) {
 			float t = (float)j / (resolution - 1);
+
+			// Calculate smooth inward-facing normal for the edge
+			float len = sqrt(innerX[j] * innerX[j] + innerY[j] * innerY[j]);
+			if (len > 0.001f) glNormal3f(-innerX[j] / len, -innerY[j] / len, 0.0f);
+			else glNormal3f(0.0f, -1.0f, 0.0f);
+
 			glTexCoord2f(t, 0.0f); glVertex3f(innerX[j], innerY[j], thickness / 2);
 			glTexCoord2f(t, 1.0f); glVertex3f(innerX[j], innerY[j], -thickness / 2);
 		}
 		glEnd();
 
 		// B. THE RED CORE GLOW
-		if (currentBladeIndex == 0)
-		{
+		if (currentBladeIndex == 0) {
 			glBindTexture(GL_TEXTURE_2D, redCoreTexture);
 		}
-		else if (currentBladeIndex == 1)
-		{
+		else if (currentBladeIndex == 1) {
 			glBindTexture(GL_TEXTURE_2D, spearRedBlade);
 		}
 		glColor3f(1.0f, 1.0f, 1.0f); // Reset color
@@ -5221,24 +5251,20 @@ void DrawWindFireWheel(float size) {
 		glScalef(pulse, pulse, pulse);
 
 		// Core of the flame
-		if (currentBladeIndex == 0)
-		{
+		if (currentBladeIndex == 0) {
 			glBindTexture(GL_TEXTURE_2D, fireCoreTexture);
 		}
-		else if (currentBladeIndex == 1)
-		{
+		else if (currentBladeIndex == 1) {
 			glBindTexture(GL_TEXTURE_2D, blueFireCoreTexture);
 		}
 		glColor3f(1.0f, 1.0f, 1.0f);
 		gluSphere(quad, 0.25, 20, 20);
 
 		// Outer flames shooting outwards
-		if (currentBladeIndex == 0)
-		{
+		if (currentBladeIndex == 0) {
 			glBindTexture(GL_TEXTURE_2D, fireOuterTexture);
 		}
-		else if (currentBladeIndex == 1)
-		{
+		else if (currentBladeIndex == 1) {
 			glBindTexture(GL_TEXTURE_2D, blueFireOuterTexture);
 		}
 		glColor3f(1.0f, 1.0f, 1.0f);
@@ -5257,6 +5283,7 @@ void DrawWindFireWheel(float size) {
 
 	// Clean up
 	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_NORMALIZE); // Turn it off so it doesn't affect other objects if they don't need it
 	glPopMatrix();
 	gluDeleteQuadric(quad);
 }
