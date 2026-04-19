@@ -76,7 +76,7 @@ enum FiveElementPreset
 
 struct AnimationPose
 {
-	float torsoX = 0.0f, torsoY = 0.0f, lowerTorsoX = 0.0f, headX = 0.0f;
+	float torsoX = 0.0f, torsoY = 0.0f, lowerTorsoX = 0.0f, lowerTorsoY, headX = 0.0f;
 	float rArmX = 0.0f, rArmY = 0.0f, rArmZ = 0.0f, rLowerArmX = 0.0f, rHandX = 0.0f, rHandY = 0.0f, rHandZ = 0.0f;
 	float lArmX = 0.0f, lArmY = 0.0f, lArmZ = 0.0f, lLowerArmX = 0.0f, lHandX = 0.0f, lHandY = 0.0f, lHandZ = 0.0f;
 	float lLegX = 0.0f, rLegX = 0.0f, lKneeX = 0.0f, rKneeX = 0.0f, lFootX = 0.0f, rFootX = 0.0f;
@@ -2133,6 +2133,7 @@ void DualSwordRushAnimation()
 		pose.torsoY = -18.0f * ease;
 		pose.torsoX = 8.0f * ease;
 		pose.lowerTorsoX = 5.0f * ease;
+		pose.lowerTorsoY = pose.torsoY;
 		pose.headX = -4.0f * ease;
 
 		pose.rArmX = 55.0f * ease;
@@ -2167,6 +2168,7 @@ void DualSwordRushAnimation()
 		pose.torsoY = -18.0f + (-48.0f * ease);
 		pose.torsoX = 8.0f + 10.0f * ease;
 		pose.lowerTorsoX = 5.0f + 6.0f * ease;
+		pose.lowerTorsoY = pose.torsoY;
 		pose.headX = -4.0f + 10.0f * ease;
 
 		pose.rArmX = 55.0f + (-120.0f * ease);
@@ -2202,6 +2204,7 @@ void DualSwordRushAnimation()
 		pose.torsoY = -66.0f + 92.0f * ease;
 		pose.torsoX = 18.0f - 14.0f * ease;
 		pose.lowerTorsoX = 11.0f - 8.0f * ease;
+		pose.lowerTorsoY = pose.torsoY;
 		pose.headX = 6.0f - 8.0f * ease;
 
 		pose.rArmX = -65.0f + 35.0f * ease;
@@ -2236,6 +2239,7 @@ void DualSwordRushAnimation()
 		pose.torsoY = 26.0f - 26.0f * ease;
 		pose.torsoX = 4.0f - 4.0f * ease;
 		pose.lowerTorsoX = 3.0f - 3.0f * ease;
+		pose.lowerTorsoY = pose.torsoY;
 		pose.headX = -2.0f + 2.0f * ease;
 
 		pose.rArmX = -30.0f + 30.0f * ease;
@@ -2267,6 +2271,7 @@ void DualSwordRushAnimation()
 	parts[UPPER_TORSO].angleX = pose.torsoX;
 	parts[UPPER_TORSO].angleY = pose.torsoY;
 	parts[LOWER_TORSO].angleX = pose.lowerTorsoX;
+	parts[LOWER_TORSO].angleY = pose.lowerTorsoY;
 
 	parts[RIGHT_UPPER_ARM].angleX = pose.rArmX;
 	parts[RIGHT_UPPER_ARM].angleY = pose.rArmY;
@@ -4965,53 +4970,6 @@ void DrawSpear(float scale)
 	glPopMatrix();
 
 	// =========================
-	// 2. SPIRAL (FIXED NORMALS)
-	// =========================
-	float totalHeight = 0.65f;
-	int segments = 150;
-	float totalTurns = 6.0f;
-	float shaftR = 0.045f;
-	float thickness = 0.1f;
-
-	glPushMatrix();
-	glTranslatef(0, 0, -0.55f);
-
-	for (int side = 0; side < 2; side++)
-	{
-		glBegin(GL_QUAD_STRIP);
-
-		for (int i = 0; i <= segments; i++)
-		{
-			float t = (float)i / segments;
-			float angle = t * totalTurns * 2.0f * 3.14159f;
-
-			float outerR = 0.18f - (t * 0.10f);
-			float zBase = pow(t, 1.8f) * totalHeight;
-			float z = (side == 0) ? zBase : zBase - thickness;
-
-			float cx = cos(angle);
-			float cy = sin(angle);
-
-			// === NORMAL (radial outward)
-			float nx = cx;
-			float ny = cy;
-			float nz = 0.0f;
-
-			glNormal3f(nx, ny, nz);
-			glTexCoord2f(t * totalTurns, 0.0f);
-			glVertex3f(cx * outerR, cy * outerR, z);
-
-			glNormal3f(nx, ny, nz);
-			glTexCoord2f(t * totalTurns, 1.0f);
-			glVertex3f(cx * shaftR, cy * shaftR, z);
-		}
-
-		glEnd();
-	}
-
-	glPopMatrix();
-
-	// =========================
 	// 3. SPIKE END
 	// =========================
 	glPushMatrix();
@@ -5061,15 +5019,8 @@ void DrawSpear(float scale)
 	glPushMatrix();
 	glTranslatef(0, 0, 2.65f);
 
-	// Base
-	glPushMatrix();
-	glScalef(1.5, 0.4, 0.7);
-	gluSphere(quad, 0.15, 20, 20);
-	glPopMatrix();
-
 	// Tip
 	glPushMatrix();
-	glTranslatef(0, 0, 0.05f);
 	gluCylinder(quad, 0.12, 0.0, 1.2, 20, 1);
 	glPopMatrix();
 
@@ -5564,7 +5515,6 @@ void DrawBananaLeafFan(float scale) {
 	float thickness = 0.02f;
 	const int NUM_POINTS = 6;
 
-	// Hardcoded points to easily explain to your tutor!
 	float profileX[NUM_POINTS] = { 0.05f, 0.60f, 0.35f, 0.70f, 0.40f, 0.00f };
 	float profileY[NUM_POINTS] = { 0.50f, 0.80f, 1.20f, 1.55f, 1.80f, 1.70f };
 
