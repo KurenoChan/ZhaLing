@@ -535,6 +535,7 @@ void WalkAnimation() {
 	// FORCE UNEQUIP WEAPON
 	// This tells DrawArm to use 'case 0' (No Weapon)
 	// ==========================================
+	currentLeftWeapon = 0;
 	currentRightWeapon = 0;
 	isGunShooting = false; // Safety: make sure flash is off
 	isLooping = true; // Force walk cycles to loop!
@@ -663,6 +664,8 @@ void WalkAnimation() {
 void SpearAttack() {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
 
+	currentLeftWeapon = 0;
+	currentRightWeapon = 1;
 	float maxFrames = 90.0f;
 	animFrame += (1.0f * animSpeed);
 
@@ -914,6 +917,8 @@ void SpearAttack() {
 void SlashAnimation() {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
 
+	currentLeftWeapon = 0;
+	currentRightWeapon = 3;
 	animFrame += (1.0f * animSpeed);
 	float maxFrames = 90.0f;
 
@@ -1169,6 +1174,8 @@ void FirewheelAnimation() {
 
 	ResetModel();
 
+	currentLeftWeapon = 0;
+	currentRightWeapon = 6;
 	animFrame += (1.0f * animSpeed);
 	float maxFrames = 90.0f;
 
@@ -1359,6 +1366,8 @@ void FirewheelAnimation() {
 void BalletAnimation() {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
 
+	currentLeftWeapon = 0;
+	currentRightWeapon = 0;
 	animFrame += (1.0f * animSpeed);
 	float maxFrames = 120.0f; // Slightly longer for a graceful, slow dance!
 
@@ -1505,6 +1514,7 @@ void GunShootAnimation() {
 		return;
 	}
 
+	currentLeftWeapon = 0;
 	currentRightWeapon = 4; // Force Magnum to be equipped
 
 	float maxFrames = 90.0f;
@@ -1639,6 +1649,9 @@ void GunShootAnimation() {
 void BackFlipAnimation()
 {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
+
+	currentLeftWeapon = 0;
+	currentRightWeapon = 0;
 
 	float maxFrames = 90.0f;
 	animFrame += (1.0f * animSpeed);
@@ -1782,6 +1795,9 @@ void SixSevenAnimation()
 {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
 
+	currentLeftWeapon = 0;
+	currentRightWeapon = 0;
+
 	float maxFrames = 90.0f;
 	animFrame += (1.0f * animSpeed);
 
@@ -1880,6 +1896,9 @@ void SixSevenAnimation()
 void EnergyBeamAnimation()
 {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
+
+	currentLeftWeapon = 0;
+	currentRightWeapon = 0;
 
 	float maxFrames = 90.0f;
 	animFrame += (1.0f * animSpeed);
@@ -6295,6 +6314,7 @@ void DrawArm(float side)
 		case 1: // --- SPEAR ---
 			// 1. Position: X is slightly negative to align with the palm center,
 			// Y is 0.0f to center it, Z pushes it slightly forward into the fingers.
+			glScalef(1.0f, side, 1.0f);
 			glTranslatef(-0.005f, -0.06f, -0.18f);
 
 			// 2. Scale
@@ -6307,7 +6327,7 @@ void DrawArm(float side)
 		case 2: // --- WEAPON 2 (Fish Sword) ---
 			// 1. Position: X is slightly negative to align with the palm center, 
 			// Y is 0.0f to center it, Z pushes it slightly forward into the fingers.
-			glTranslatef(-0.075f, 0.01f, 0.25f);
+			glTranslatef(-0.075f, side * 0.01f, 0.25f);
 			glRotatef(270.0f, 0.0f, 1.0f, 0.0f);
 			glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
 			glScalef(0.2f, 0.2f, 0.2f);
@@ -6316,14 +6336,14 @@ void DrawArm(float side)
 			break;
 
 		case 3: // --- LEAF FAN ---
-			glTranslatef(0.0f, 0.009f, 0.0f);
+			glTranslatef(0.0f, side * 0.009f, 0.0f);
 			glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
 			glScalef(0.15f, 0.15f, 0.15f);
 			DrawBananaLeafFan(1.0f);
 			break;
 
 		case 4: // --- MAGNUM GUN ---
-			glTranslatef(-0.06f, 0.005f, 0.008f);
+			glTranslatef(-0.055f, side * 0.008f, 0.008f);
 			glRotatef(180.0f, 0.0f, 1.0f, 0.0f);
 			glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
 			glScalef(0.25f, 0.25f, 0.25f);
