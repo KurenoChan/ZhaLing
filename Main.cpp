@@ -522,6 +522,8 @@ float Clamp(float v, float minV, float maxV)
 //---------
 
 void WalkAnimation() {
+	ResetModel();
+
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
 	// ==========================================
 	// FORCE UNEQUIP WEAPON
@@ -1482,7 +1484,7 @@ void BalletAnimation() {
 	parts[RIGHT_UPPER_LEG].angleX = rLegX; parts[RIGHT_UPPER_LEG].angleY = rLegY; parts[RIGHT_UPPER_LEG].angleZ = rLegZ;
 	parts[RIGHT_LOWER_LEG].angleX = rKneeX;
 	parts[RIGHT_FOOT].angleX = rFootX; parts[RIGHT_FOOT].angleZ = rFootZ;
-	characterX = charX; characterY = charY; characterZ = charZ;
+	//characterX = charX; characterY = charY; characterZ = charZ;
 }
 
 void GunShootAnimation() {
@@ -1765,7 +1767,6 @@ void BackFlipAnimation()
 	characterZ = charZ;
 	characterY = charY;
 }
-
 
 void SixSevenAnimation()
 {
@@ -5157,108 +5158,6 @@ void DrawMagnumGun(float scale, bool isShooting) {
 	gluDeleteQuadric(quad);
 }
 
-void DrawEnergyChargeOrb(float radius, float pulse)
-{
-	glColor4f(0.08f, 0.34f, 1.0f, 0.22f + pulse * 0.08f);
-	glPushMatrix();
-	glScalef(1.95f, 1.95f, 1.95f);
-	DrawSphere(quadric, radius, 18, 18);
-	glPopMatrix();
-
-	glColor4f(0.18f, 0.72f, 1.0f, 0.42f + pulse * 0.14f);
-	glPushMatrix();
-	glScalef(1.30f, 1.30f, 1.30f);
-	DrawSphere(quadric, radius, 18, 18);
-	glPopMatrix();
-
-	glColor4f(0.28f, 0.82f, 1.0f, 0.82f);
-	DrawSphere(quadric, radius, 18, 18);
-
-	glColor4f(0.90f, 0.98f, 1.0f, 0.96f);
-	DrawSphere(quadric, radius * 0.48f, 16, 16);
-}
-
-void DrawEnergyLaserBeam(float beamLength, float beamRadius)
-{
-	glColor4f(0.10f, 0.42f, 1.0f, 0.24f);
-	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, beamLength * 0.5f);
-	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-	DrawCylinder(quadric, beamRadius * 2.2f, beamRadius * 1.45f, beamLength, 18, 8);
-	glPopMatrix();
-
-	glColor4f(0.24f, 0.76f, 1.0f, 0.50f);
-	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, beamLength * 0.5f);
-	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-	DrawCylinder(quadric, beamRadius * 1.15f, beamRadius * 0.78f, beamLength, 18, 8);
-	glPopMatrix();
-
-	glColor4f(0.92f, 0.99f, 1.0f, 0.96f);
-	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, beamLength * 0.5f);
-	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-	DrawCylinder(quadric, beamRadius * 0.42f, beamRadius * 0.24f, beamLength, 16, 8);
-	glPopMatrix();
-
-	glColor4f(0.22f, 0.74f, 1.0f, 0.82f);
-	DrawSphere(quadric, beamRadius * 2.0f, 18, 18);
-
-	glColor4f(0.95f, 0.99f, 1.0f, 0.98f);
-	DrawSphere(quadric, beamRadius * 0.9f, 16, 16);
-}
-
-void DrawEnergyBeamAnimationEffect()
-{
-	if (currentSceneMode != ANIMATION || currentAnimType != 6)
-		return;
-
-	const float maxFrames = 100.0f;
-	float t = Clamp(animFrame / maxFrames, 0.0f, 1.0f);
-
-	glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glDepthMask(GL_FALSE);
-
-	glPushMatrix();
-	glTranslatef(characterX, characterY, characterZ);
-	glTranslatef(0.0f, 0.12f, 0.16f);
-
-	if (t <= 0.60f)
-	{
-		float phaseT = (t <= 0.35f) ? (t / 0.35f) : ((t - 0.35f) / 0.25f);
-		float baseRadius = (t <= 0.35f)
-			? (0.025f + 0.11f * phaseT)
-			: (0.135f + sinf(phaseT * PI * 6.0f) * 0.015f);
-		float pulse = (t <= 0.35f) ? phaseT : (0.85f + fabsf(sinf(phaseT * PI * 6.0f)) * 0.35f);
-		DrawEnergyChargeOrb(baseRadius, pulse);
-	}
-	else if (t <= 0.82f)
-	{
-		float phaseT = (t - 0.60f) / 0.22f;
-		float ease = (1.0f - cosf(phaseT * PI)) * 0.5f;
-		float beamLength = 0.35f + 2.45f * ease;
-		float beamRadius = 0.05f + 0.025f * ease;
-		DrawEnergyLaserBeam(beamLength, beamRadius);
-	}
-	else
-	{
-		float phaseT = (t - 0.82f) / 0.18f;
-		float fade = 1.0f - ((1.0f - cosf(phaseT * PI)) * 0.5f);
-		float radius = 0.08f * fade;
-
-		glColor4f(0.18f, 0.55f, 1.0f, 0.42f * fade);
-		DrawSphere(quadric, radius * 1.4f, 16, 16);
-		glColor4f(0.90f, 0.98f, 1.0f, 0.76f * fade);
-		DrawSphere(quadric, radius * 0.65f, 16, 16);
-	}
-
-	glPopMatrix();
-	glPopAttrib();
-}
 
 // -----------------
 // LIGHTING SETUP
@@ -8095,6 +7994,109 @@ void DrawCharacterBodyDecorations(float torsoRadius, float torsoHeight, bool isC
 		glDisable(GL_TEXTURE_2D);
 		break;
 	}
+}
+
+void DrawEnergyChargeOrb(float radius, float pulse)
+{
+	glColor4f(0.08f, 0.34f, 1.0f, 0.22f + pulse * 0.08f);
+	glPushMatrix();
+	glScalef(1.95f, 1.95f, 1.95f);
+	DrawSphere(quadric, radius, 18, 18);
+	glPopMatrix();
+
+	glColor4f(0.18f, 0.72f, 1.0f, 0.42f + pulse * 0.14f);
+	glPushMatrix();
+	glScalef(1.30f, 1.30f, 1.30f);
+	DrawSphere(quadric, radius, 18, 18);
+	glPopMatrix();
+
+	glColor4f(0.28f, 0.82f, 1.0f, 0.82f);
+	DrawSphere(quadric, radius, 18, 18);
+
+	glColor4f(0.90f, 0.98f, 1.0f, 0.96f);
+	DrawSphere(quadric, radius * 0.48f, 16, 16);
+}
+
+void DrawEnergyLaserBeam(float beamLength, float beamRadius)
+{
+	glColor4f(0.10f, 0.42f, 1.0f, 0.24f);
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0f, beamLength * 0.5f);
+	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	DrawCylinder(quadric, beamRadius * 2.2f, beamRadius * 1.45f, beamLength, 18, 8);
+	glPopMatrix();
+
+	glColor4f(0.24f, 0.76f, 1.0f, 0.50f);
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0f, beamLength * 0.5f);
+	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	DrawCylinder(quadric, beamRadius * 1.15f, beamRadius * 0.78f, beamLength, 18, 8);
+	glPopMatrix();
+
+	glColor4f(0.92f, 0.99f, 1.0f, 0.96f);
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0f, beamLength * 0.5f);
+	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
+	DrawCylinder(quadric, beamRadius * 0.42f, beamRadius * 0.24f, beamLength, 16, 8);
+	glPopMatrix();
+
+	glColor4f(0.22f, 0.74f, 1.0f, 0.82f);
+	DrawSphere(quadric, beamRadius * 2.0f, 18, 18);
+
+	glColor4f(0.95f, 0.99f, 1.0f, 0.98f);
+	DrawSphere(quadric, beamRadius * 0.9f, 16, 16);
+}
+
+void DrawEnergyBeamAnimationEffect()
+{
+	if (currentSceneMode != ANIMATION || currentAnimType != 8)
+		return;
+
+	const float maxFrames = 100.0f;
+	float t = Clamp(animFrame / maxFrames, 0.0f, 1.0f);
+
+	glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_TEXTURE_2D);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glDepthMask(GL_FALSE);
+
+	glPushMatrix();
+	glTranslatef(characterX, characterY, characterZ);
+	glTranslatef(0.0f, 0.12f, 0.16f);
+
+	if (t <= 0.60f)
+	{
+		float phaseT = (t <= 0.35f) ? (t / 0.35f) : ((t - 0.35f) / 0.25f);
+		float baseRadius = (t <= 0.35f)
+			? (0.025f + 0.11f * phaseT)
+			: (0.135f + sinf(phaseT * PI * 6.0f) * 0.015f);
+		float pulse = (t <= 0.35f) ? phaseT : (0.85f + fabsf(sinf(phaseT * PI * 6.0f)) * 0.35f);
+		DrawEnergyChargeOrb(baseRadius, pulse);
+	}
+	else if (t <= 0.82f)
+	{
+		float phaseT = (t - 0.60f) / 0.22f;
+		float ease = (1.0f - cosf(phaseT * PI)) * 0.5f;
+		float beamLength = 0.35f + 2.45f * ease;
+		float beamRadius = 0.05f + 0.025f * ease;
+		DrawEnergyLaserBeam(beamLength, beamRadius);
+	}
+	else
+	{
+		float phaseT = (t - 0.82f) / 0.18f;
+		float fade = 1.0f - ((1.0f - cosf(phaseT * PI)) * 0.5f);
+		float radius = 0.08f * fade;
+
+		glColor4f(0.18f, 0.55f, 1.0f, 0.42f * fade);
+		DrawSphere(quadric, radius * 1.4f, 16, 16);
+		glColor4f(0.90f, 0.98f, 1.0f, 0.76f * fade);
+		DrawSphere(quadric, radius * 0.65f, 16, 16);
+	}
+
+	glPopMatrix();
+	glPopAttrib();
 }
 
 // ----------------------------------------------------
