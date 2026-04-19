@@ -657,7 +657,7 @@ void WalkAnimation() {
 void SpearAttack() {
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
 
-	float maxFrames = (currentAnimType == 1) ? 110.0f : 90.0f;
+	float maxFrames = 90.0f;
 	animFrame += (1.0f * animSpeed);
 
 	// Handle Looping logic
@@ -704,8 +704,6 @@ void SpearAttack() {
 	// ==========================================
 	// 2. ANIMATION PHASES
 	// ==========================================
-	if (currentAnimType == 0) {
-
 		// ---------------------------------------------------------
 		// PHASE 1: Wind-up (0% to 40%) 
 		// Formula: ease * TARGET_1
@@ -876,7 +874,6 @@ void SpearAttack() {
 
 			charX = characterX, charY = characterY, charZ = characterZ;
 		}
-	}
 
 	// ==========================================
 	// 3. APPLY VARIABLES TO PARTS
@@ -1162,6 +1159,8 @@ void SlashAnimation() {
 }
 
 void FirewheelAnimation() {
+	ResetModel();
+
 	if (!isPlaying || currentSceneMode != ANIMATION) return;
 
 	animFrame += (1.0f * animSpeed);
@@ -1200,6 +1199,8 @@ void FirewheelAnimation() {
 	float rKneeX = 0.0f;
 	float rFootX = 0.0f, rFootZ = 0.0f;
 
+	float baseY = characterY;
+
 	float charX = characterX, charY = characterY, charZ = characterZ;
 
 	// ==========================================
@@ -1235,7 +1236,7 @@ void FirewheelAnimation() {
 		rKneeX = ease * 5.0f;
 		rFootX = ease * 50.0f; rFootZ = 0.0f;
 
-		charX = characterX; charY = characterY; charZ = characterZ;
+		charX = characterX; charY = baseY + ease * 0.3f; charZ = characterZ;
 	}
 
 	// ---------------------------------------------------------
@@ -1274,6 +1275,7 @@ void FirewheelAnimation() {
 		rHandX = 20.0f + (ease * (0.0f - 20.0f));
 		rHandY = -35.0f + (ease * (-60.0f - (-35.0f)));
 		rHandZ = 0.0f;
+		charY = baseY + 0.3f + ease * 0.1f;
 	}
 
 	// ---------------------------------------------------------
@@ -1298,6 +1300,7 @@ void FirewheelAnimation() {
 
 		rLegX = 50.0f; rLegY = 0.0f; rLegZ = 0.0f;
 		rKneeX = 5.0f; rFootX = 50.0f; rFootZ = 0.0f;
+		charY = baseY + 0.4f;
 	}
 
 	// ---------------------------------------------------------
@@ -1323,6 +1326,7 @@ void FirewheelAnimation() {
 		lLegX = 50.0f - (ease * 50.0f); lKneeX = 20.0f - (ease * 20.0f);
 
 		rLegX = 50.0f - (ease * 50.0f); rKneeX = 5.0f - (ease * 5.0f); rFootX = 50.0f - (ease * 50.0f);
+		charY = baseY + (0.4f * (1.0f - ease));
 	}
 
 	// ==========================================
@@ -2074,10 +2078,10 @@ void UpdateAnimation() {
 	switch (currentAnimType)
 	{
 	case 0:
-		SpearAttack();
+		WalkAnimation();
 		break;
 	case 1:
-		WalkAnimation();
+		SpearAttack();
 		break;
 	case 2:
 		SlashAnimation();
@@ -2425,11 +2429,7 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			break;
 
 		case 0x4F: // [O]
-			if (currentSceneMode == ANIMATION)
-			{
-				isPlaying = true; // Play/Continue animation
-			}
-			else if (isCameraMode)
+			if (isCameraMode)
 			{
 				currentCameraMode = (CameraMode)((currentCameraMode + CAMERA_COUNT - 1) % CAMERA_COUNT);
 			}
@@ -2437,19 +2437,33 @@ LRESULT WINAPI WindowProcedure(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam
 			{
 				lightIndex = (lightIndex + NUM_LIGHTS - 1) % NUM_LIGHTS;
 			}
+			else
+			{
+				switch (currentSceneMode)
+				{
+				case ANIMATION:
+					isPlaying = true; // Play/Continue 
+					break;
+				}
+			}
 			break;
 		case 0x50: // [P]
-			if (currentSceneMode == ANIMATION)
-			{
-				isPlaying = false; // Pause animation
-			}
-			else if (isCameraMode)
+			if (isCameraMode)
 			{
 				currentCameraMode = (CameraMode)((currentCameraMode + 1) % CAMERA_COUNT);
 			}
 			else if (isLightMode)
 			{
 				lightIndex = (lightIndex + 1) % NUM_LIGHTS;
+			}
+			else
+			{
+				switch (currentSceneMode)
+				{
+				case ANIMATION:
+					isPlaying = false; // Pause animation
+					break;
+				}
 			}
 			break;
 
@@ -4395,7 +4409,7 @@ void DrawSpear(float scale)
 	gluCylinder(quad, 0.05, 0.05, 2.5, 15, 1);
 
 	// ===== 3. LEAF DECORATION (GOLD) =====
-	
+
 	if (currentBladeIndex == 0)
 	{
 		glBindTexture(GL_TEXTURE_2D, goldenTexture);
@@ -8017,34 +8031,95 @@ void DrawEnergyChargeOrb(float radius, float pulse)
 	DrawSphere(quadric, radius * 0.48f, 16, 16);
 }
 
-void DrawEnergyLaserBeam(float beamLength, float beamRadius)
+void DrawEnergyHaloRing(float radius, float thickness, float alpha, float rotX, float rotY, float rotZ)
 {
-	glColor4f(0.10f, 0.42f, 1.0f, 0.24f);
+	const int segments = 48;
+
+	glPushMatrix();
+	glRotatef(rotX, 1.0f, 0.0f, 0.0f);
+	glRotatef(rotY, 0.0f, 1.0f, 0.0f);
+	glRotatef(rotZ, 0.0f, 0.0f, 1.0f);
+
+	glBegin(GL_TRIANGLE_STRIP);
+	for (int i = 0; i <= segments; ++i)
+	{
+		float angle = ((float)i / (float)segments) * PI * 2.0f;
+		float cs = cosf(angle);
+		float sn = sinf(angle);
+
+		glColor4f(0.10f, 0.45f, 1.0f, 0.0f);
+		glVertex3f(cs * (radius + thickness), sn * (radius + thickness), 0.0f);
+
+		glColor4f(0.56f, 0.90f, 1.0f, alpha);
+		glVertex3f(cs * radius, sn * radius, 0.0f);
+	}
+	glEnd();
+
+	glPopMatrix();
+}
+
+void DrawEnergyBeamSpiral(float beamLength, float beamRadius, float twistOffset, float alpha)
+{
+	const int segments = 36;
+
+	glBegin(GL_LINE_STRIP);
+	for (int i = 0; i <= segments; ++i)
+	{
+		float u = (float)i / (float)segments;
+		float angle = twistOffset + u * PI * 5.0f;
+		float radius = beamRadius * (1.6f - u * 0.6f);
+
+		glColor4f(0.38f, 0.86f, 1.0f, alpha * (1.0f - u));
+		glVertex3f(cosf(angle) * radius, sinf(angle) * radius, beamLength * u);
+	}
+	glEnd();
+}
+
+void DrawEnergyLaserBeam(float beamLength, float beamRadius, float pulse, float twistOffset)
+{
+	float haloRadius = beamRadius * (2.4f + pulse * 0.35f);
+	float midRadius = beamRadius * (1.30f + pulse * 0.12f);
+	float coreRadius = beamRadius * 0.46f;
+
+	glColor4f(0.10f, 0.42f, 1.0f, 0.18f + pulse * 0.05f);
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, beamLength * 0.5f);
 	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-	DrawCylinder(quadric, beamRadius * 2.2f, beamRadius * 1.45f, beamLength, 18, 8);
+	DrawCylinder(quadric, haloRadius, beamRadius * 1.55f, beamLength, 20, 8);
 	glPopMatrix();
 
-	glColor4f(0.24f, 0.76f, 1.0f, 0.50f);
+	glColor4f(0.24f, 0.76f, 1.0f, 0.42f + pulse * 0.12f);
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, beamLength * 0.5f);
 	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-	DrawCylinder(quadric, beamRadius * 1.15f, beamRadius * 0.78f, beamLength, 18, 8);
+	DrawCylinder(quadric, midRadius, beamRadius * 0.82f, beamLength, 18, 8);
 	glPopMatrix();
 
-	glColor4f(0.92f, 0.99f, 1.0f, 0.96f);
+	glColor4f(0.92f, 0.99f, 1.0f, 0.92f);
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, beamLength * 0.5f);
 	glRotatef(-90.0f, 1.0f, 0.0f, 0.0f);
-	DrawCylinder(quadric, beamRadius * 0.42f, beamRadius * 0.24f, beamLength, 16, 8);
+	DrawCylinder(quadric, coreRadius, beamRadius * 0.22f, beamLength, 16, 8);
 	glPopMatrix();
 
-	glColor4f(0.22f, 0.74f, 1.0f, 0.82f);
-	DrawSphere(quadric, beamRadius * 2.0f, 18, 18);
+	glLineWidth(2.0f);
+	DrawEnergyBeamSpiral(beamLength, beamRadius, twistOffset, 0.60f + pulse * 0.14f);
+	DrawEnergyBeamSpiral(beamLength, beamRadius, twistOffset + PI, 0.48f + pulse * 0.10f);
+	glLineWidth(1.0f);
+
+	glColor4f(0.22f, 0.74f, 1.0f, 0.68f + pulse * 0.10f);
+	DrawSphere(quadric, beamRadius * 2.1f, 18, 18);
 
 	glColor4f(0.95f, 0.99f, 1.0f, 0.98f);
 	DrawSphere(quadric, beamRadius * 0.9f, 16, 16);
+
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0f, beamLength);
+	glColor4f(0.34f, 0.82f, 1.0f, 0.42f + pulse * 0.10f);
+	DrawSphere(quadric, beamRadius * 2.8f, 18, 18);
+	glColor4f(0.96f, 1.0f, 1.0f, 0.94f);
+	DrawSphere(quadric, beamRadius * 1.1f, 16, 16);
+	glPopMatrix();
 }
 
 void DrawEnergyBeamAnimationEffect()
@@ -8052,8 +8127,12 @@ void DrawEnergyBeamAnimationEffect()
 	if (currentSceneMode != ANIMATION || currentAnimType != 8)
 		return;
 
-	const float maxFrames = 100.0f;
+	const float maxFrames = 90.0f;
 	float t = Clamp(animFrame / maxFrames, 0.0f, 1.0f);
+	float effectPulse = 0.5f + 0.5f * sinf(t * PI * 16.0f);
+	float swirlAngle = t * 720.0f;
+	float handOffsetZ = (t <= 0.60f) ? 0.16f : (0.16f + (t - 0.60f) / 0.22f * 0.18f);
+	handOffsetZ = Clamp(handOffsetZ, 0.16f, 0.34f);
 
 	glPushAttrib(GL_ENABLE_BIT | GL_COLOR_BUFFER_BIT | GL_LIGHTING_BIT | GL_DEPTH_BUFFER_BIT);
 	glDisable(GL_LIGHTING);
@@ -8061,38 +8140,78 @@ void DrawEnergyBeamAnimationEffect()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 	glDepthMask(GL_FALSE);
+	glDisable(GL_CULL_FACE);
 
 	glPushMatrix();
 	glTranslatef(characterX, characterY, characterZ);
-	glTranslatef(0.0f, 0.12f, 0.16f);
+	glTranslatef(0.0f, 0.12f, handOffsetZ);
 
 	if (t <= 0.60f)
 	{
 		float phaseT = (t <= 0.35f) ? (t / 0.35f) : ((t - 0.35f) / 0.25f);
+		float grow = (t <= 0.35f) ? phaseT : 1.0f;
 		float baseRadius = (t <= 0.35f)
-			? (0.025f + 0.11f * phaseT)
-			: (0.135f + sinf(phaseT * PI * 6.0f) * 0.015f);
-		float pulse = (t <= 0.35f) ? phaseT : (0.85f + fabsf(sinf(phaseT * PI * 6.0f)) * 0.35f);
+			? (0.025f + 0.12f * phaseT)
+			: (0.145f + sinf(phaseT * PI * 6.0f) * 0.014f);
+		float pulse = (t <= 0.35f) ? (0.30f + phaseT * 0.70f) : (0.95f + fabsf(sinf(phaseT * PI * 8.0f)) * 0.30f);
+
+		glPushMatrix();
+		glScalef(1.0f + effectPulse * 0.05f, 1.0f + effectPulse * 0.05f, 1.0f + effectPulse * 0.08f);
 		DrawEnergyChargeOrb(baseRadius, pulse);
+		glPopMatrix();
+
+		DrawEnergyHaloRing(baseRadius * (1.65f + effectPulse * 0.10f), baseRadius * 0.55f, 0.36f * grow, 70.0f, swirlAngle, 0.0f);
+		DrawEnergyHaloRing(baseRadius * (1.95f + effectPulse * 0.08f), baseRadius * 0.42f, 0.26f * grow, 20.0f, 90.0f + swirlAngle * 0.7f, 35.0f);
+		DrawEnergyHaloRing(baseRadius * (1.25f + effectPulse * 0.05f), baseRadius * 0.24f, 0.44f * grow, 90.0f, 0.0f, -swirlAngle * 1.4f);
+
+		if (t > 0.35f)
+		{
+			float jitter = sinf(phaseT * PI * 24.0f) * 0.012f;
+			for (int i = 0; i < 4; ++i)
+			{
+				float angle = swirlAngle * 0.04f + i * (PI * 0.5f);
+				float sparkRadius = baseRadius * (1.35f + 0.12f * (float)i);
+
+				glColor4f(0.42f, 0.88f, 1.0f, 0.32f);
+				glBegin(GL_LINES);
+				glVertex3f(cosf(angle) * sparkRadius, sinf(angle) * sparkRadius, -0.01f);
+				glVertex3f(cosf(angle) * (sparkRadius + 0.05f), sinf(angle) * (sparkRadius + 0.05f), 0.05f + jitter);
+				glEnd();
+			}
+		}
 	}
 	else if (t <= 0.82f)
 	{
 		float phaseT = (t - 0.60f) / 0.22f;
 		float ease = (1.0f - cosf(phaseT * PI)) * 0.5f;
-		float beamLength = 0.35f + 2.45f * ease;
-		float beamRadius = 0.05f + 0.025f * ease;
-		DrawEnergyLaserBeam(beamLength, beamRadius);
+		float beamLength = 0.45f + 2.65f * ease;
+		float beamRadius = 0.055f + 0.030f * ease;
+		float pulse = 0.75f + 0.25f * sinf(phaseT * PI * 10.0f);
+
+		glPushMatrix();
+		glTranslatef(0.0f, 0.0f, -0.04f);
+		DrawEnergyLaserBeam(beamLength, beamRadius, pulse, phaseT * PI * 2.5f);
+		glPopMatrix();
+
+		float backFlash = 1.0f - ease * 0.7f;
+		glColor4f(0.24f, 0.78f, 1.0f, 0.28f * backFlash);
+		DrawSphere(quadric, beamRadius * 3.4f, 18, 18);
+		glColor4f(0.96f, 0.99f, 1.0f, 0.82f * backFlash);
+		DrawSphere(quadric, beamRadius * 1.35f, 16, 16);
 	}
 	else
 	{
 		float phaseT = (t - 0.82f) / 0.18f;
 		float fade = 1.0f - ((1.0f - cosf(phaseT * PI)) * 0.5f);
-		float radius = 0.08f * fade;
+		float radius = 0.10f * fade;
 
-		glColor4f(0.18f, 0.55f, 1.0f, 0.42f * fade);
-		DrawSphere(quadric, radius * 1.4f, 16, 16);
-		glColor4f(0.90f, 0.98f, 1.0f, 0.76f * fade);
-		DrawSphere(quadric, radius * 0.65f, 16, 16);
+		glColor4f(0.18f, 0.55f, 1.0f, 0.30f * fade);
+		DrawSphere(quadric, radius * 1.8f, 16, 16);
+		glColor4f(0.54f, 0.88f, 1.0f, 0.42f * fade);
+		DrawSphere(quadric, radius * 1.05f, 16, 16);
+		glColor4f(0.90f, 0.98f, 1.0f, 0.72f * fade);
+		DrawSphere(quadric, radius * 0.58f, 16, 16);
+		DrawEnergyHaloRing(radius * 1.9f, radius * 0.55f, 0.18f * fade, 70.0f, swirlAngle, 0.0f);
 	}
 
 	glPopMatrix();
@@ -8499,7 +8618,7 @@ void Display()
 	DrawWoodElementBackgroundEffect();
 	DrawMetalElementBackgroundEffect();
 	DrawEarthElementBackgroundEffect();
-	DrawEnergyBeamAnimationEffect();
+
 
 	float worldRadius = 100.0f;
 	float worldOffsetY = -0.55f;
@@ -8517,6 +8636,8 @@ void Display()
 	DrawCharacter();
 	glPopMatrix();
 	// END ZhaLing
+
+	DrawEnergyBeamAnimationEffect();
 
 	glDisable(GL_LIGHT0);
 	glDisable(GL_LIGHTING);
