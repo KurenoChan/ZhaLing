@@ -122,11 +122,11 @@ float scarfSpeed = 0.2f;
 // ========================
 // NeZha Character Model
 float characterX = 0.0f;
-float characterY = -0.13f;
+float characterY = -0.1f;
 float characterZ = -1.0f;
 
 float characterX_default = 0.0f;
-float characterY_default = -0.13f;
+float characterY_default = -0.1f;
 float characterZ_default = -1.0f;
 
 // Character Parts
