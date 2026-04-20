@@ -5671,19 +5671,22 @@ void DrawKiritoInspiredSword(bool isMainSword, float scale)
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, bladeLength * 0.5f);
 	DrawCuboidPolygon(bladeWidth, bladeThick, bladeLength);
+
+	float bladeTipLength = bladeLength * 0.2f;
+	glBindTexture(GL_TEXTURE_2D, currentBladeIndex == 0 ? spearBlade : spearRedBlade);
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0f, bladeLength / 2 + bladeTipLength / 2);
+	glRotatef(90.0f, 0.0f, 0.0f, 1.0f);
+	glRotatef(90.0f, 1.0f, 0.0f, 0.0f);
+	DrawPrism(bladeThick, bladeTipLength, bladeWidth);
+	glPopMatrix();
+
 	glPopMatrix();
 
 	glBindTexture(GL_TEXTURE_2D, currentBladeIndex == 0 ? spearBlade : spearRedBlade);
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, bladeLength * 0.42f);
 	DrawCuboidPolygon(bladeWidth * 0.35f, bladeThick * 0.45f, bladeLength * 0.78f);
-	glPopMatrix();
-
-	glBindTexture(GL_TEXTURE_2D, currentBladeIndex == 0 ? spearBlade : spearRedBlade);
-	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, bladeLength + 0.12f);
-	glScalef(bladeWidth * 0.9f, bladeThick, 0.24f);
-	DrawPyramid(1.0f, 1.0f);
 	glPopMatrix();
 
 	glBindTexture(GL_TEXTURE_2D, isMainSword ? goldenTexture : silverTexture);
